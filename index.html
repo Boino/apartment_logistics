@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>House Availability</title>
+  <style>
+    :root {
+      --ink: #1f2a2e;
+      --muted: #66737a;
+      --line: #d8e0df;
+      --paper: #f6f4ee;
+      --panel: #ffffff;
+      --brand: #1d7464;
+      --brand-strong: #125346;
+      --accent: #c5613a;
+      --soft: #e8f2ef;
+      --blocked: #f2e6e1;
+      --free: #e5f4e8;
+      --shadow: 0 14px 36px rgba(31, 42, 46, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(246, 244, 238, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 14px 0;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.15rem, 2.4vw, 1.7rem);
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .view-switch {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 6px 16px rgba(31, 42, 46, 0.06);
+      flex: 0 0 auto;
+    }
+
+    .view-switch button {
+      min-width: 112px;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .view-switch button.active {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .hero-gallery {
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(190px, 1.22fr);
+      gap: 10px;
+      width: min(1180px, calc(100% - 32px));
+      margin: 22px auto 0;
+      height: clamp(430px, 58vw, 560px);
+      touch-action: pan-y;
+      user-select: none;
+    }
+
+    .hero-gallery:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .hero-gallery.dragging {
+      cursor: grabbing;
+    }
+
+    .main-photo,
+    .thumb-tile {
+      position: relative;
+      overflow: hidden;
+      background: #dfe6e4;
+    }
+
+    .main-photo {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .main-photo img,
+    .thumb-tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .main-photo img {
+      min-height: 100%;
+    }
+
+    .photo-caption {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: calc(100% - 36px);
+    }
+
+    .photo-caption span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .photo-count {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+      font-size: 0.92rem;
+      font-weight: 850;
+    }
+
+    .gallery-nav {
+      position: absolute;
+      top: 50%;
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+      font-size: 1.4rem;
+      font-weight: 900;
+      transform: translateY(-50%);
+    }
+
+    .gallery-nav.prev {
+      left: 14px;
+    }
+
+    .gallery-nav.next {
+      right: 14px;
+    }
+
+    .thumb-grid {
+      display: grid;
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .thumb-tile {
+      min-height: 0;
+    }
+
+    .thumb-tile:first-child {
+      border-radius: 0 8px 0 0;
+    }
+
+    .thumb-tile:nth-child(4) {
+      border-radius: 0 0 8px 0;
+    }
+
+    .thumb-tile button {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+
+    .thumb-more {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 6px 9px;
+      border-radius: 6px;
+      background: rgba(31, 42, 46, 0.86);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 850;
+      pointer-events: none;
+    }
+
+    .thumb-tile.selected {
+      outline: 4px solid var(--accent);
+      outline-offset: -4px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      align-items: start;
+      gap: 24px;
+      width: min(1180px, calc(100% - 32px));
+      margin: 26px auto 48px;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(31, 42, 46, 0.06);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-header h2,
+    .section-header h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .month-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .calendar {
+      padding: 14px;
+    }
+
+    .weekdays,
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .weekdays span {
+      padding: 6px 4px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .day {
+      position: relative;
+      min-height: 88px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      text-align: left;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .day:not(.empty):hover {
+      transform: translateY(-1px);
+      border-color: var(--brand);
+    }
+
+    .day.empty {
+      background: transparent;
+      border-color: transparent;
+      cursor: default;
+    }
+
+    .day.free {
+      background: var(--free);
+    }
+
+    .day.blocked,
+    .day.past {
+      background: var(--blocked);
+      color: #8f5d4e;
+    }
+
+    .day.selected {
+      border-color: var(--brand-strong);
+      box-shadow: inset 0 0 0 2px var(--brand-strong);
+    }
+
+    .day.in-range {
+      background: var(--soft);
+    }
+
+    .day-number {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 850;
+    }
+
+    .day-price,
+    .day-status {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.82rem;
+    }
+
+    .day-price {
+      font-weight: 800;
+    }
+
+    .day-status {
+      color: var(--muted);
+    }
+
+    .side-panel {
+      position: sticky;
+      top: 92px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .booking-box,
+    .host-box {
+      padding: 18px;
+    }
+
+    .price-line {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-weight: 850;
+    }
+
+    .price-line strong {
+      font-size: 1.65rem;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .field textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    .date-row,
+    .host-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .primary,
+    .secondary,
+    .danger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-weight: 850;
+    }
+
+    .primary {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .primary:hover {
+      background: var(--brand-strong);
+    }
+
+    .secondary {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .danger {
+      background: #a64632;
+      color: #fff;
+    }
+
+    .summary {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0;
+      padding: 12px;
+      border-radius: 6px;
+      background: var(--soft);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .notice {
+      min-height: 24px;
+      color: var(--brand-strong);
+      font-weight: 750;
+    }
+
+    .notice.error {
+      color: #9d3727;
+    }
+
+    .host-only {
+      display: none;
+    }
+
+    .host-only.host-layout {
+      display: none;
+    }
+
+    body.host-mode .customer-only {
+      display: none;
+    }
+
+    body.host-mode .host-only {
+      display: block;
+    }
+
+    body.host-mode .host-only.grid {
+      display: grid;
+    }
+
+    body.host-mode .host-only.host-layout {
+      display: grid;
+    }
+
+    .host-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 24px;
+      width: min(1180px, calc(100% - 32px));
+      margin: 26px auto 48px;
+    }
+
+    body.host-mode .content {
+      display: none;
+    }
+
+    .image-manager {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .image-item {
+      display: grid;
+      grid-template-columns: 94px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .image-item img {
+      width: 94px;
+      height: 74px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #dfe6e4;
+    }
+
+    .image-meta {
+      min-width: 0;
+    }
+
+    .image-title {
+      overflow: hidden;
+      margin-bottom: 8px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .image-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .small-button {
+      min-height: 32px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .small-button.active {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+
+    .host-tools {
+      display: grid;
+      gap: 16px;
+    }
+
+    .host-calendar {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(31, 42, 46, 0.06);
+    }
+
+    .empty-gallery {
+      display: grid;
+      place-items: center;
+      min-height: 380px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .topbar-inner {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .view-switch {
+        width: 100%;
+      }
+
+      .view-switch button {
+        min-width: 0;
+      }
+
+      .hero-gallery,
+      .content,
+      .host-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .main-photo {
+        border-radius: 8px;
+      }
+
+      .main-photo img {
+        min-height: 100%;
+      }
+
+      .thumb-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-rows: none;
+      }
+
+      .thumb-tile,
+      .thumb-tile:first-child,
+      .thumb-tile:nth-child(4) {
+        min-height: 120px;
+        border-radius: 8px;
+      }
+
+      .side-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar-inner,
+      .hero-gallery,
+      .content,
+      .host-layout {
+        width: min(100% - 20px, 1180px);
+      }
+
+      .brand p {
+        font-size: 0.86rem;
+      }
+
+      .thumb-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .day {
+        min-height: 72px;
+        padding: 6px;
+      }
+
+      .day-price,
+      .day-status {
+        margin-top: 4px;
+        font-size: 0.7rem;
+      }
+
+      .date-row,
+      .host-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <h1>Holiday House</h1>
+          <p>Gallery, availability and booking requests</p>
+        </div>
+        <nav class="view-switch" aria-label="View">
+          <button id="customerView" class="active" type="button">Customer</button>
+          <button id="hostView" type="button">Host</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="gallery" class="hero-gallery" aria-label="House photos" tabindex="0"></section>
+
+      <section class="content customer-only">
+        <div class="section">
+          <div class="section-header">
+            <h2 id="customerMonthLabel">Availability</h2>
+            <div class="month-controls">
+              <button class="icon-button" id="customerPrev" type="button" aria-label="Previous month">&lt;</button>
+              <button class="icon-button" id="customerNext" type="button" aria-label="Next month">&gt;</button>
+            </div>
+          </div>
+          <div class="calendar" id="customerCalendar"></div>
+        </div>
+
+        <aside class="side-panel">
+          <div class="section booking-box">
+            <div class="price-line">
+              <span>From</span>
+              <strong id="fromPrice">EUR 0</strong>
+            </div>
+            <form id="bookingForm" class="form-grid">
+              <div class="date-row">
+                <div class="field">
+                  <label for="checkIn">Check-in</label>
+                  <input id="checkIn" name="checkIn" type="date" required>
+                </div>
+                <div class="field">
+                  <label for="checkOut">Check-out</label>
+                  <input id="checkOut" name="checkOut" type="date" required>
+                </div>
+              </div>
+              <div class="field">
+                <label for="guestName">Name</label>
+                <input id="guestName" name="guestName" autocomplete="name" required>
+              </div>
+              <div class="field">
+                <label for="guestEmail">Email</label>
+                <input id="guestEmail" name="guestEmail" type="email" autocomplete="email" required>
+              </div>
+              <div class="field">
+                <label for="guests">Guests</label>
+                <select id="guests" name="guests">
+                  <option>1 guest</option>
+                  <option selected>2 guests</option>
+                  <option>3 guests</option>
+                  <option>4 guests</option>
+                  <option>5 guests</option>
+                  <option>6 guests</option>
+                </select>
+              </div>
+              <div class="summary" id="bookingSummary"></div>
+              <button class="primary" type="submit">Request booking</button>
+              <div class="notice" id="bookingNotice" role="status"></div>
+            </form>
+          </div>
+        </aside>
+      </section>
+
+      <section class="host-only host-layout">
+        <div class="host-calendar">
+          <div class="section-header">
+            <h2 id="hostMonthLabel">Availability</h2>
+            <div class="month-controls">
+              <button class="icon-button" id="hostPrev" type="button" aria-label="Previous month">&lt;</button>
+              <button class="icon-button" id="hostNext" type="button" aria-label="Next month">&gt;</button>
+            </div>
+          </div>
+          <div class="calendar" id="hostCalendar"></div>
+        </div>
+
+        <div class="host-tools">
+          <div class="section host-box">
+            <div class="section-header">
+              <h3>Dates and prices</h3>
+            </div>
+            <form id="availabilityForm" class="form-grid">
+              <div class="date-row">
+                <div class="field">
+                  <label for="hostStart">Start</label>
+                  <input id="hostStart" type="date" required>
+                </div>
+                <div class="field">
+                  <label for="hostEnd">End</label>
+                  <input id="hostEnd" type="date" required>
+                </div>
+              </div>
+              <div class="field">
+                <label for="hostStatus">Availability</label>
+                <select id="hostStatus">
+                  <option value="free">Free</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="hostPrice">Nightly price</label>
+                <input id="hostPrice" type="number" min="0" step="1" value="120">
+              </div>
+              <div class="host-actions">
+                <button class="primary" type="submit">Apply</button>
+                <button class="secondary" id="resetCalendar" type="button">Reset dates</button>
+              </div>
+              <div class="notice" id="hostNotice" role="status"></div>
+            </form>
+          </div>
+
+          <div class="section">
+            <div class="section-header">
+              <h3>Photos</h3>
+            </div>
+            <div class="image-manager">
+              <div class="field">
+                <label for="imageUpload">Add photos</label>
+                <input id="imageUpload" type="file" accept="image/*" multiple>
+              </div>
+              <div id="imageList" class="image-manager"></div>
+              <button class="secondary" id="resetImages" type="button">Reset photos</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const defaultImages = [
+      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (3).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (2).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (1).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (4).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (5).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.37.33.jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (1).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (2).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (3).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (4).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (5).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (6).jpeg",
+      "Images/WhatsApp Image 2026-01-30 at 22.38.41.jpeg",
+      "Images/WhatsApp Image 2026-03-05 at 11.52.46.jpeg",
+      "Images/WhatsApp Image 2026-05-27 at 21.22.32 (1).jpeg",
+      "Images/WhatsApp Image 2026-05-27 at 21.22.32 (2).jpeg",
+      "Images/WhatsApp Image 2026-05-27 at 21.22.32.jpeg",
+      "Images/WhatsApp Image 2026-05-27 at 21.22.33 (1).jpeg",
+      "Images/WhatsApp Image 2026-05-27 at 21.22.33 (2).jpeg",
+      "Images/WhatsApp Image 2026-05-27 at 21.22.33.jpeg"
+    ].map((src, index) => ({
+      id: `default-${index}`,
+      name: src.split("/").pop(),
+      src,
+      active: true
+    }));
+
+    const storageKey = "holiday-house-state-v1";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const state = loadState();
+    let customerMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    let hostMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    let currentImage = 0;
+
+    const els = {
+      body: document.body,
+      gallery: document.getElementById("gallery"),
+      imageList: document.getElementById("imageList"),
+      customerView: document.getElementById("customerView"),
+      hostView: document.getElementById("hostView"),
+      customerCalendar: document.getElementById("customerCalendar"),
+      hostCalendar: document.getElementById("hostCalendar"),
+      customerMonthLabel: document.getElementById("customerMonthLabel"),
+      hostMonthLabel: document.getElementById("hostMonthLabel"),
+      customerPrev: document.getElementById("customerPrev"),
+      customerNext: document.getElementById("customerNext"),
+      hostPrev: document.getElementById("hostPrev"),
+      hostNext: document.getElementById("hostNext"),
+      checkIn: document.getElementById("checkIn"),
+      checkOut: document.getElementById("checkOut"),
+      bookingSummary: document.getElementById("bookingSummary"),
+      bookingNotice: document.getElementById("bookingNotice"),
+      bookingForm: document.getElementById("bookingForm"),
+      fromPrice: document.getElementById("fromPrice"),
+      availabilityForm: document.getElementById("availabilityForm"),
+      hostStart: document.getElementById("hostStart"),
+      hostEnd: document.getElementById("hostEnd"),
+      hostStatus: document.getElementById("hostStatus"),
+      hostPrice: document.getElementById("hostPrice"),
+      hostNotice: document.getElementById("hostNotice"),
+      resetCalendar: document.getElementById("resetCalendar"),
+      imageUpload: document.getElementById("imageUpload"),
+      resetImages: document.getElementById("resetImages")
+    };
+
+    function loadState() {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return {
+            images: Array.isArray(parsed.images) && parsed.images.length ? parsed.images : defaultImages,
+            dates: parsed.dates || {}
+          };
+        } catch (error) {
+          return { images: defaultImages, dates: {} };
+        }
+      }
+      return { images: defaultImages, dates: {} };
+    }
+
+    function saveState() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseDate(value) {
+      if (!value) return null;
+      const [year, month, day] = value.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function addDays(date, days) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
+    function monthName(date) {
+      return date.toLocaleDateString("en", { month: "long", year: "numeric" });
+    }
+
+    function getDefaultPrice(date) {
+      const day = date.getDay();
+      return day === 5 || day === 6 ? 145 : 120;
+    }
+
+    function getDateInfo(date) {
+      const key = formatDate(date);
+      const saved = state.dates[key] || {};
+      return {
+        status: saved.status || "free",
+        price: Number(saved.price || getDefaultPrice(date))
+      };
+    }
+
+    function activeImages() {
+      return state.images.filter((image) => image.active !== false);
+    }
+
+    function galleryThumbs(images) {
+      const maxThumbs = Math.min(4, images.length - 1);
+      return Array.from({ length: maxThumbs }, (_, index) => images[(currentImage + index + 1) % images.length]);
+    }
+
+    function showGalleryImage(nextIndex) {
+      const images = activeImages();
+      if (!images.length) return;
+      currentImage = (nextIndex + images.length) % images.length;
+      renderGallery();
+    }
+
+    function moveGallery(direction) {
+      showGalleryImage(currentImage + direction);
+    }
+
+    function enableGallerySwipe() {
+      let startX = 0;
+      let startY = 0;
+      let pointerId = null;
+      let tracking = false;
+
+      els.gallery.addEventListener("pointerdown", (event) => {
+        if (activeImages().length < 2) return;
+        startX = event.clientX;
+        startY = event.clientY;
+        pointerId = event.pointerId;
+        tracking = true;
+        els.gallery.classList.add("dragging");
+      });
+
+      els.gallery.addEventListener("pointerup", (event) => {
+        if (!tracking || event.pointerId !== pointerId) return;
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+        tracking = false;
+        pointerId = null;
+        els.gallery.classList.remove("dragging");
+
+        if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
+        moveGallery(deltaX < 0 ? 1 : -1);
+      });
+
+      els.gallery.addEventListener("pointercancel", () => {
+        tracking = false;
+        pointerId = null;
+        els.gallery.classList.remove("dragging");
+      });
+
+      els.gallery.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          moveGallery(-1);
+        }
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          moveGallery(1);
+        }
+      });
+    }
+
+    function renderGallery() {
+      const images = activeImages();
+      if (!images.length) {
+        els.gallery.innerHTML = `<div class="empty-gallery">No active photos</div>`;
+        return;
+      }
+
+      currentImage = Math.min(currentImage, images.length - 1);
+      const main = images[currentImage];
+      const thumbs = galleryThumbs(images);
+
+      els.gallery.innerHTML = `
+        <div class="main-photo">
+          <img src="${main.src}" alt="House photo" draggable="false">
+          <button class="gallery-nav prev" type="button" data-gallery-step="-1" aria-label="Previous photo">&lt;</button>
+          <button class="gallery-nav next" type="button" data-gallery-step="1" aria-label="Next photo">&gt;</button>
+          <span class="photo-count">${currentImage + 1} / ${images.length} photos</span>
+        </div>
+        <div class="thumb-grid">
+          ${thumbs.map((image, index) => `
+            <div class="thumb-tile">
+              <img src="${image.src}" alt="House photo thumbnail" draggable="false">
+              ${index === thumbs.length - 1 && images.length > 5 ? `<span class="thumb-more">+${images.length - 5}</span>` : ""}
+              <button type="button" data-image-id="${image.id}" aria-label="Show photo ${image.name}"></button>
+            </div>
+          `).join("")}
+        </div>
+      `;
+
+      els.gallery.querySelectorAll("[data-gallery-step]").forEach((button) => {
+        button.addEventListener("click", () => {
+          moveGallery(Number(button.dataset.galleryStep));
+        });
+      });
+
+      els.gallery.querySelectorAll("[data-image-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextIndex = images.findIndex((image) => image.id === button.dataset.imageId);
+          if (nextIndex >= 0) {
+            showGalleryImage(nextIndex);
+          }
+        });
+      });
+    }
+
+    function renderCalendar(target, label, month, mode) {
+      label.textContent = monthName(month);
+      const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+      const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+      const weekdayOffset = (firstDay.getDay() + 6) % 7;
+      const checkIn = parseDate(els.checkIn.value);
+      const checkOut = parseDate(els.checkOut.value);
+      const selectedStart = mode === "host" ? parseDate(els.hostStart.value) : checkIn;
+      const selectedEnd = mode === "host" ? parseDate(els.hostEnd.value) : checkOut;
+
+      let html = `
+        <div class="weekdays">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div class="days-grid">
+      `;
+
+      for (let i = 0; i < weekdayOffset; i += 1) {
+        html += `<button class="day empty" type="button" tabindex="-1"></button>`;
+      }
+
+      for (let day = 1; day <= lastDay.getDate(); day += 1) {
+        const date = new Date(month.getFullYear(), month.getMonth(), day);
+        const key = formatDate(date);
+        const info = getDateInfo(date);
+        const isPast = date < today;
+        const isBlocked = info.status === "blocked";
+        const isSelected = selectedStart && formatDate(selectedStart) === key || selectedEnd && formatDate(selectedEnd) === key;
+        const isInRange = selectedStart && selectedEnd && date > selectedStart && date < selectedEnd;
+        const classes = [
+          "day",
+          isPast ? "past" : info.status,
+          isSelected ? "selected" : "",
+          isInRange ? "in-range" : ""
+        ].filter(Boolean).join(" ");
+        const status = isPast ? "Past" : isBlocked ? "Blocked" : "Free";
+
+        html += `
+          <button class="${classes}" type="button" data-date="${key}" ${mode === "customer" && (isPast || isBlocked) ? "aria-disabled=\"true\"" : ""}>
+            <span class="day-number">${day}</span>
+            <span class="day-price">EUR ${info.price}</span>
+            <span class="day-status">${status}</span>
+          </button>
+        `;
+      }
+
+      html += `</div>`;
+      target.innerHTML = html;
+
+      target.querySelectorAll("[data-date]").forEach((dayButton) => {
+        dayButton.addEventListener("click", () => {
+          const date = parseDate(dayButton.dataset.date);
+          if (mode === "customer") {
+            chooseCustomerDate(date);
+          } else {
+            chooseHostDate(date);
+          }
+        });
+      });
+    }
+
+    function chooseCustomerDate(date) {
+      const info = getDateInfo(date);
+      if (date < today || info.status === "blocked") return;
+
+      const checkIn = parseDate(els.checkIn.value);
+      const checkOut = parseDate(els.checkOut.value);
+      if (!checkIn || checkOut || date <= checkIn) {
+        els.checkIn.value = formatDate(date);
+        els.checkOut.value = "";
+      } else {
+        els.checkOut.value = formatDate(date);
+      }
+      renderAllCalendars();
+      updateBookingSummary();
+    }
+
+    function chooseHostDate(date) {
+      const start = parseDate(els.hostStart.value);
+      const end = parseDate(els.hostEnd.value);
+      if (!start || end || date < start) {
+        els.hostStart.value = formatDate(date);
+        els.hostEnd.value = formatDate(date);
+      } else {
+        els.hostEnd.value = formatDate(date);
+      }
+
+      const info = getDateInfo(date);
+      els.hostStatus.value = info.status;
+      els.hostPrice.value = info.price;
+      renderAllCalendars();
+    }
+
+    function eachDate(start, end, callback) {
+      for (let date = new Date(start); date <= end; date = addDays(date, 1)) {
+        callback(new Date(date));
+      }
+    }
+
+    function nightsBetween(start, end) {
+      return Math.round((end - start) / 86400000);
+    }
+
+    function bookingDetails() {
+      const start = parseDate(els.checkIn.value);
+      const end = parseDate(els.checkOut.value);
+      if (!start || !end || end <= start) {
+        return { valid: false, nights: 0, total: 0, blocked: false };
+      }
+
+      let total = 0;
+      let blocked = false;
+      eachDate(start, addDays(end, -1), (date) => {
+        const info = getDateInfo(date);
+        if (date < today || info.status === "blocked") blocked = true;
+        total += info.price;
+      });
+
+      return { valid: !blocked, nights: nightsBetween(start, end), total, blocked };
+    }
+
+    function updateBookingSummary() {
+      const details = bookingDetails();
+      if (!details.nights) {
+        els.bookingSummary.innerHTML = `
+          <div class="summary-row"><span>Nights</span><strong>0</strong></div>
+          <div class="summary-row"><span>Total</span><strong>EUR 0</strong></div>
+        `;
+        return;
+      }
+
+      els.bookingSummary.innerHTML = `
+        <div class="summary-row"><span>Nights</span><strong>${details.nights}</strong></div>
+        <div class="summary-row"><span>Total</span><strong>EUR ${details.total}</strong></div>
+      `;
+      els.bookingNotice.textContent = details.blocked ? "Selected dates include unavailable nights." : "";
+      els.bookingNotice.classList.toggle("error", details.blocked);
+    }
+
+    function updateFromPrice() {
+      const prices = [];
+      for (let offset = 0; offset < 90; offset += 1) {
+        const date = addDays(today, offset);
+        const info = getDateInfo(date);
+        if (info.status === "free") prices.push(info.price);
+      }
+      els.fromPrice.textContent = `EUR ${Math.min(...prices) || 0}`;
+    }
+
+    function renderImageManager() {
+      els.imageList.innerHTML = state.images.map((image, index) => `
+        <div class="image-item">
+          <img src="${image.src}" alt="${image.name}">
+          <div class="image-meta">
+            <div class="image-title">${image.name}</div>
+            <div class="image-controls">
+              <button class="small-button ${image.active !== false ? "active" : ""}" type="button" data-action="toggle" data-index="${index}">${image.active !== false ? "Visible" : "Hidden"}</button>
+              <button class="small-button" type="button" data-action="cover" data-index="${index}">Cover</button>
+              <button class="small-button" type="button" data-action="up" data-index="${index}">Up</button>
+              <button class="small-button" type="button" data-action="down" data-index="${index}">Down</button>
+              <button class="small-button" type="button" data-action="remove" data-index="${index}">Remove</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      els.imageList.querySelectorAll("[data-action]").forEach((button) => {
+        button.addEventListener("click", () => updateImage(button.dataset.action, Number(button.dataset.index)));
+      });
+    }
+
+    function updateImage(action, index) {
+      const image = state.images[index];
+      if (!image) return;
+      if (action === "toggle") {
+        image.active = image.active === false;
+      }
+      if (action === "cover" && index > 0) {
+        state.images.splice(index, 1);
+        state.images.unshift(image);
+        currentImage = 0;
+      }
+      if (action === "up" && index > 0) {
+        const previous = state.images[index - 1];
+        state.images[index - 1] = image;
+        state.images[index] = previous;
+      }
+      if (action === "down" && index < state.images.length - 1) {
+        const next = state.images[index + 1];
+        state.images[index + 1] = image;
+        state.images[index] = next;
+      }
+      if (action === "remove") {
+        state.images.splice(index, 1);
+        currentImage = 0;
+      }
+      saveState();
+      renderGallery();
+      renderImageManager();
+    }
+
+    function renderAllCalendars() {
+      renderCalendar(els.customerCalendar, els.customerMonthLabel, customerMonth, "customer");
+      renderCalendar(els.hostCalendar, els.hostMonthLabel, hostMonth, "host");
+      updateFromPrice();
+    }
+
+    function setMode(mode) {
+      const host = mode === "host";
+      els.body.classList.toggle("host-mode", host);
+      els.customerView.classList.toggle("active", !host);
+      els.hostView.classList.toggle("active", host);
+      renderGallery();
+      renderAllCalendars();
+    }
+
+    function applyAvailability(event) {
+      event.preventDefault();
+      const start = parseDate(els.hostStart.value);
+      const end = parseDate(els.hostEnd.value);
+      const price = Number(els.hostPrice.value);
+      if (!start || !end || end < start || Number.isNaN(price) || price < 0) {
+        els.hostNotice.textContent = "Check the selected dates and price.";
+        els.hostNotice.classList.add("error");
+        return;
+      }
+
+      eachDate(start, end, (date) => {
+        state.dates[formatDate(date)] = {
+          status: els.hostStatus.value,
+          price
+        };
+      });
+
+      saveState();
+      els.hostNotice.textContent = "Updated.";
+      els.hostNotice.classList.remove("error");
+      renderAllCalendars();
+      updateBookingSummary();
+    }
+
+    function addUploadedImages(files) {
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.images.push({
+            id: `upload-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            name: file.name,
+            src: reader.result,
+            active: true
+          });
+          saveState();
+          renderGallery();
+          renderImageManager();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    els.customerView.addEventListener("click", () => setMode("customer"));
+    els.hostView.addEventListener("click", () => setMode("host"));
+    els.customerPrev.addEventListener("click", () => {
+      customerMonth = new Date(customerMonth.getFullYear(), customerMonth.getMonth() - 1, 1);
+      renderAllCalendars();
+    });
+    els.customerNext.addEventListener("click", () => {
+      customerMonth = new Date(customerMonth.getFullYear(), customerMonth.getMonth() + 1, 1);
+      renderAllCalendars();
+    });
+    els.hostPrev.addEventListener("click", () => {
+      hostMonth = new Date(hostMonth.getFullYear(), hostMonth.getMonth() - 1, 1);
+      renderAllCalendars();
+    });
+    els.hostNext.addEventListener("click", () => {
+      hostMonth = new Date(hostMonth.getFullYear(), hostMonth.getMonth() + 1, 1);
+      renderAllCalendars();
+    });
+    els.checkIn.addEventListener("change", () => {
+      renderAllCalendars();
+      updateBookingSummary();
+    });
+    els.checkOut.addEventListener("change", () => {
+      renderAllCalendars();
+      updateBookingSummary();
+    });
+    els.bookingForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const details = bookingDetails();
+      if (!details.valid || !details.nights) {
+        els.bookingNotice.textContent = "Choose available check-in and check-out dates.";
+        els.bookingNotice.classList.add("error");
+        return;
+      }
+      els.bookingNotice.textContent = `Request sent for ${details.nights} nights, total EUR ${details.total}.`;
+      els.bookingNotice.classList.remove("error");
+      event.target.reset();
+      updateBookingSummary();
+      renderAllCalendars();
+    });
+    els.availabilityForm.addEventListener("submit", applyAvailability);
+    els.hostStart.addEventListener("change", renderAllCalendars);
+    els.hostEnd.addEventListener("change", renderAllCalendars);
+    els.resetCalendar.addEventListener("click", () => {
+      state.dates = {};
+      saveState();
+      els.hostNotice.textContent = "Dates reset.";
+      els.hostNotice.classList.remove("error");
+      renderAllCalendars();
+      updateBookingSummary();
+    });
+    els.imageUpload.addEventListener("change", (event) => {
+      addUploadedImages(event.target.files);
+      event.target.value = "";
+    });
+    els.resetImages.addEventListener("click", () => {
+      state.images = defaultImages.map((image) => ({ ...image }));
+      currentImage = 0;
+      saveState();
+      renderGallery();
+      renderImageManager();
+    });
+
+    els.checkIn.min = formatDate(today);
+    els.checkOut.min = formatDate(addDays(today, 1));
+    els.hostStart.value = formatDate(today);
+    els.hostEnd.value = formatDate(today);
+    enableGallerySwipe();
+    renderGallery();
+    renderImageManager();
+    renderAllCalendars();
+    updateBookingSummary();
+  </script>
+</body>
+</html>
