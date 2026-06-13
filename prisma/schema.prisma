@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Models ─────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  phone        String?
+  isHost       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  listings          Listing[]
+  inquiries         Inquiry[]         @relation("GuestInquiries")
+  sentMessages      Message[]
+  staffAssignments  StaffAssignment[]
+  prepSlots         PrepSlot[]
+  notifications     Notification[]
+  linenUpdates      LinenSet[]        @relation("LinenUpdater")
+  consumableUpdates Consumable[]      @relation("ConsumableUpdater")
+  damageReports     DamageReport[]
+}
+
+model Listing {
+  id                String   @id @default(cuid())
+  hostId            String
+  title             String
+  description       String?
+  addressText       String
+  lat               Float?
+  lng               Float?
+  locationPrecision String   @default("AREA")
+  maxGuests         Int      @default(2)
+  bedrooms          Int      @default(1)
+  bathrooms         Int      @default(1)
+  basePrice         Float
+  currency          String   @default("EUR")
+  checkInTime       String   @default("14:00")
+  checkOutTime      String   @default("11:00")
+  minStay           Int      @default(1)
+  maxStay           Int?
+  status            String   @default("DRAFT")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  host               User               @relation(fields: [hostId], references: [id])
+  photos             ListingPhoto[]
+  listingAmenities   ListingAmenity[]
+  availabilityBlocks AvailabilityBlock[]
+  inquiries          Inquiry[]
+  stays              Stay[]
+  staffAssignments   StaffAssignment[]
+  prepSlots          PrepSlot[]
+  linenSets          LinenSet[]
+  consumables        Consumable[]
+  damageReports      DamageReport[]
+}
+
+model ListingPhoto {
+  id        String  @id @default(cuid())
+  listingId String
+  url       String
+  key       String  @default("")
+  thumbUrl  String?
+  thumbKey  String?
+  sortOrder Int     @default(0)
+  isCover   Boolean @default(false)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Amenity {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  icon     String?
+  category String?
+
+  listingAmenities ListingAmenity[]
+}
+
+model ListingAmenity {
+  listingId String
+  amenityId String
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  amenity Amenity @relation(fields: [amenityId], references: [id])
+
+  @@id([listingId, amenityId])
+}
+
+model AvailabilityBlock {
+  id           String   @id @default(cuid())
+  listingId    String
+  startDate    DateTime
+  endDate      DateTime
+  status       String
+  nightlyPrice Float?
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Inquiry {
+  id           String   @id @default(cuid())
+  listingId    String
+  guestId      String
+  checkinDate  DateTime
+  checkoutDate DateTime
+  numGuests    Int
+  comments     String?
+  status       String   @default("OPEN")
+  createdAt    DateTime @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  guest   User    @relation("GuestInquiries", fields: [guestId], references: [id])
+  thread  Thread?
+  stays   Stay[]
+}
+
+model Thread {
+  id        String   @id @default(cuid())
+  inquiryId String   @unique
+  createdAt DateTime @default(now())
+
+  inquiry  Inquiry   @relation(fields: [inquiryId], references: [id])
+  messages Message[]
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  threadId  String
+  senderId  String?
+  body      String
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  thread Thread @relation(fields: [threadId], references: [id])
+  sender User?  @relation(fields: [senderId], references: [id])
+}
+
+model Stay {
+  id         String   @id @default(cuid())
+  listingId  String
+  inquiryId  String?
+  guestName  String
+  numGuests  Int
+  checkinAt  DateTime
+  checkoutAt DateTime
+  status     String   @default("UPCOMING")
+  notes      String?
+
+  listing           Listing    @relation(fields: [listingId], references: [id])
+  inquiry           Inquiry?   @relation(fields: [inquiryId], references: [id])
+  outgoingPrepSlots PrepSlot[] @relation("OutgoingStay")
+  incomingPrepSlots PrepSlot[] @relation("IncomingStay")
+}
+
+model StaffAssignment {
+  id          String   @id @default(cuid())
+  listingId   String
+  staffUserId String?
+  inviteEmail String
+  inviteToken String   @unique
+  status      String   @default("INVITED")
+  createdAt   DateTime @default(now())
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  staffUser User?   @relation(fields: [staffUserId], references: [id])
+
+  @@unique([listingId, inviteEmail])
+}
+
+model PrepSlot {
+  id             String    @id @default(cuid())
+  listingId      String
+  staffUserId    String
+  outgoingStayId String?
+  incomingStayId String?
+  windowStart    DateTime
+  windowEnd      DateTime
+  status         String    @default("REQUESTED")
+  hostNotes      String?
+  completedAt    DateTime?
+  completionNote String?
+
+  listing      Listing @relation(fields: [listingId], references: [id])
+  staffUser    User    @relation(fields: [staffUserId], references: [id])
+  outgoingStay Stay?   @relation("OutgoingStay", fields: [outgoingStayId], references: [id])
+  incomingStay Stay?   @relation("IncomingStay", fields: [incomingStayId], references: [id])
+}
+
+model LinenSet {
+  id          String   @id @default(cuid())
+  listingId   String
+  type        String
+  label       String
+  state       String   @default("STORED_CLEAN")
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  updatedBy User?   @relation("LinenUpdater", fields: [updatedById], references: [id])
+}
+
+model Consumable {
+  id          String   @id @default(cuid())
+  listingId   String
+  name        String
+  unit        String?
+  quantity    Int?
+  level       String?
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  updatedBy User?   @relation("ConsumableUpdater", fields: [updatedById], references: [id])
+}
+
+model DamageReport {
+  id          String   @id @default(cuid())
+  listingId   String
+  prepSlotId  String?
+  reporterId  String?
+  description String
+  photoUrl    String?
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+
+  listing  Listing @relation(fields: [listingId], references: [id])
+  reporter User?   @relation(fields: [reporterId], references: [id])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

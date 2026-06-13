@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>House Availability</title>
+  <title>Holiday House</title>
   <style>
     :root {
       --ink: #1f2a2e;
@@ -17,733 +17,541 @@
       --soft: #e8f2ef;
       --blocked: #f2e6e1;
       --free: #e5f4e8;
-      --shadow: 0 14px 36px rgba(31, 42, 46, 0.12);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: var(--paper);
-      color: var(--ink);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.45;
-    }
-
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-    }
-
-    img {
-      display: block;
-      max-width: 100%;
-    }
-
-    .app-shell {
-      min-height: 100vh;
-    }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      background: rgba(246, 244, 238, 0.94);
-      border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(14px);
-    }
-
-    .topbar-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      width: min(1180px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 14px 0;
-    }
-
-    .brand {
-      min-width: 0;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: clamp(1.15rem, 2.4vw, 1.7rem);
-      letter-spacing: 0;
-    }
-
-    .brand p {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 0.93rem;
-    }
-
-    .view-switch {
-      display: inline-grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px;
-      padding: 4px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: 0 6px 16px rgba(31, 42, 46, 0.06);
-      flex: 0 0 auto;
-    }
-
-    .view-switch button {
-      min-width: 112px;
-      min-height: 38px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      background: transparent;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .view-switch button.active {
-      background: var(--brand);
-      color: #fff;
-    }
-
-    .hero-gallery {
-      display: grid;
-      grid-template-columns: minmax(0, 4fr) minmax(190px, 1.22fr);
-      gap: 10px;
-      width: min(1180px, calc(100% - 32px));
-      margin: 22px auto 0;
-      height: clamp(430px, 58vw, 560px);
-      touch-action: pan-y;
-      user-select: none;
-    }
-
-    .hero-gallery:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 4px;
-    }
-
-    .hero-gallery.dragging {
-      cursor: grabbing;
-    }
-
-    .main-photo,
-    .thumb-tile {
-      position: relative;
-      overflow: hidden;
-      background: #dfe6e4;
-    }
-
-    .main-photo {
-      border-radius: 8px 0 0 8px;
-    }
-
-    .main-photo img,
-    .thumb-tile img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .main-photo img {
-      min-height: 100%;
-    }
-
-    .photo-caption {
-      position: absolute;
-      left: 18px;
-      bottom: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      max-width: calc(100% - 36px);
-    }
-
-    .photo-caption span {
-      display: inline-flex;
-      align-items: center;
-      min-height: 34px;
-      padding: 7px 10px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-      font-size: 0.92rem;
-      font-weight: 700;
-    }
-
-    .photo-count {
-      position: absolute;
-      right: 16px;
-      bottom: 16px;
-      display: inline-flex;
-      align-items: center;
-      min-height: 38px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.94);
-      color: var(--ink);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
-      font-size: 0.92rem;
-      font-weight: 850;
-    }
-
-    .gallery-nav {
-      position: absolute;
-      top: 50%;
-      display: inline-grid;
-      place-items: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.94);
-      color: var(--ink);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
-      font-size: 1.4rem;
-      font-weight: 900;
-      transform: translateY(-50%);
-    }
-
-    .gallery-nav.prev {
-      left: 14px;
-    }
-
-    .gallery-nav.next {
-      right: 14px;
-    }
-
-    .thumb-grid {
-      display: grid;
-      grid-template-rows: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      min-height: 0;
-    }
-
-    .thumb-tile {
-      min-height: 0;
-    }
-
-    .thumb-tile:first-child {
-      border-radius: 0 8px 0 0;
-    }
-
-    .thumb-tile:nth-child(4) {
-      border-radius: 0 0 8px 0;
-    }
-
-    .thumb-tile button {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-    }
-
-    .thumb-more {
-      position: absolute;
-      right: 10px;
-      bottom: 10px;
-      display: inline-flex;
-      align-items: center;
-      min-height: 30px;
-      padding: 6px 9px;
-      border-radius: 6px;
-      background: rgba(31, 42, 46, 0.86);
-      color: #fff;
-      font-size: 0.82rem;
-      font-weight: 850;
-      pointer-events: none;
-    }
-
-    .thumb-tile.selected {
-      outline: 4px solid var(--accent);
-      outline-offset: -4px;
-    }
-
-    .content {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      align-items: start;
-      gap: 24px;
-      width: min(1180px, calc(100% - 32px));
-      margin: 26px auto 48px;
-    }
-
-    .section {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(31, 42, 46, 0.06);
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      padding: 16px 18px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .section-header h2,
-    .section-header h3 {
-      margin: 0;
-      font-size: 1.05rem;
-    }
-
-    .month-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .icon-button {
-      display: inline-grid;
-      place-items: center;
-      width: 38px;
-      height: 38px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--ink);
-      font-weight: 900;
-    }
-
-    .calendar {
-      padding: 14px;
-    }
-
-    .weekdays,
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 6px;
-    }
-
-    .weekdays span {
-      padding: 6px 4px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 800;
-      text-align: center;
-      text-transform: uppercase;
-    }
-
-    .day {
-      position: relative;
-      min-height: 88px;
-      padding: 8px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #fff;
-      text-align: left;
-      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
-    }
-
-    .day:not(.empty):hover {
-      transform: translateY(-1px);
-      border-color: var(--brand);
-    }
-
-    .day.empty {
-      background: transparent;
-      border-color: transparent;
-      cursor: default;
-    }
-
-    .day.free {
-      background: var(--free);
-    }
-
-    .day.blocked,
-    .day.past {
-      background: var(--blocked);
-      color: #8f5d4e;
-    }
-
-    .day.selected {
-      border-color: var(--brand-strong);
-      box-shadow: inset 0 0 0 2px var(--brand-strong);
-    }
-
-    .day.in-range {
-      background: var(--soft);
-    }
-
-    .day-number {
-      display: block;
-      font-size: 0.92rem;
-      font-weight: 850;
-    }
-
-    .day-price,
-    .day-status {
-      display: block;
-      margin-top: 8px;
-      font-size: 0.82rem;
-    }
-
-    .day-price {
-      font-weight: 800;
-    }
-
-    .day-status {
-      color: var(--muted);
-    }
-
-    .side-panel {
-      position: sticky;
-      top: 92px;
-      display: grid;
-      gap: 16px;
-    }
-
-    .booking-box,
-    .host-box {
-      padding: 18px;
-    }
-
-    .price-line {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
-      font-weight: 850;
-    }
-
-    .price-line strong {
-      font-size: 1.65rem;
-    }
-
-    .form-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-
-    .field label {
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 850;
-      text-transform: uppercase;
-    }
-
-    .field input,
-    .field select,
-    .field textarea {
-      width: 100%;
-      min-height: 42px;
-      padding: 10px 11px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--ink);
-    }
-
-    .field textarea {
-      min-height: 86px;
-      resize: vertical;
-    }
-
-    .date-row,
-    .host-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .primary,
-    .secondary,
-    .danger {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      padding: 10px 14px;
-      border-radius: 6px;
-      font-weight: 850;
-    }
-
-    .primary {
-      background: var(--brand);
-      color: #fff;
-    }
-
-    .primary:hover {
-      background: var(--brand-strong);
-    }
-
-    .secondary {
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--ink);
-    }
-
-    .danger {
-      background: #a64632;
-      color: #fff;
-    }
-
-    .summary {
-      display: grid;
-      gap: 8px;
-      margin: 14px 0;
-      padding: 12px;
-      border-radius: 6px;
-      background: var(--soft);
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .notice {
-      min-height: 24px;
-      color: var(--brand-strong);
-      font-weight: 750;
-    }
-
-    .notice.error {
-      color: #9d3727;
-    }
-
-    .host-only {
-      display: none;
-    }
-
-    .host-only.host-layout {
-      display: none;
-    }
-
-    body.host-mode .customer-only {
-      display: none;
-    }
-
-    body.host-mode .host-only {
-      display: block;
-    }
-
-    body.host-mode .host-only.grid {
-      display: grid;
-    }
-
-    body.host-mode .host-only.host-layout {
-      display: grid;
-    }
-
-    .host-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 380px;
-      gap: 24px;
-      width: min(1180px, calc(100% - 32px));
-      margin: 26px auto 48px;
-    }
-
-    body.host-mode .content {
-      display: none;
-    }
-
-    .image-manager {
-      display: grid;
-      gap: 12px;
-      padding: 14px;
-    }
-
-    .image-item {
-      display: grid;
-      grid-template-columns: 94px minmax(0, 1fr);
-      gap: 12px;
-      align-items: center;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-    }
-
-    .image-item img {
-      width: 94px;
-      height: 74px;
-      border-radius: 6px;
-      object-fit: cover;
-      background: #dfe6e4;
-    }
-
-    .image-meta {
-      min-width: 0;
-    }
-
-    .image-title {
-      overflow: hidden;
-      margin-bottom: 8px;
-      font-weight: 800;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .image-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .small-button {
-      min-height: 32px;
-      padding: 6px 9px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--ink);
-      font-size: 0.86rem;
-      font-weight: 800;
-    }
-
-    .small-button.active {
-      background: var(--brand);
-      color: #fff;
-      border-color: var(--brand);
-    }
-
-    .host-tools {
-      display: grid;
-      gap: 16px;
-    }
-
-    .host-calendar {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(31, 42, 46, 0.06);
-    }
-
-    .empty-gallery {
-      display: grid;
-      place-items: center;
-      min-height: 380px;
-      border: 1px dashed var(--line);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--muted);
-      text-align: center;
-      padding: 24px;
-    }
-
+      --shadow: 0 14px 36px rgba(31,42,46,.12);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.45; }
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    img { display: block; max-width: 100%; }
+    .hidden { display: none !important; }
+
+    /* ── Topbar ── */
+    .topbar { position: sticky; top: 0; z-index: 20; background: rgba(246,244,238,.94); border-bottom: 1px solid var(--line); backdrop-filter: blur(14px); }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 12px 0; flex-wrap: wrap; }
+    .brand h1 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.6rem); }
+    .brand p  { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+
+    .view-switch { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .view-switch button { min-width: 100px; min-height: 36px; padding: 7px 10px; border-radius: 6px; background: transparent; color: var(--muted); font-weight: 700; }
+    .view-switch button.active { background: var(--brand); color: #fff; }
+
+    /* auth controls */
+    .auth-wrap { position: relative; }
+    .btn-signin { min-height: 36px; padding: 7px 14px; border-radius: 6px; background: var(--brand); color: #fff; font-weight: 700; }
+    .btn-signin:hover { background: var(--brand-strong); }
+    .user-pill { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); font-weight: 700; font-size: .88rem; cursor: pointer; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-size: .78rem; font-weight: 900; flex: 0 0 auto; }
+    .user-menu { position: absolute; top: calc(100% + 6px); right: 0; min-width: 170px; padding: 5px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); z-index: 50; }
+    .menu-item { display: block; width: 100%; padding: 8px 12px; border-radius: 6px; background: transparent; color: var(--ink); text-align: left; font-weight: 700; font-size: .88rem; }
+    .menu-item:hover { background: var(--soft); }
+    .menu-item.danger { color: #a64632; }
+    .menu-item.danger:hover { background: var(--blocked); }
+
+    /* ── Modal ── */
+    .modal-backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(31,42,46,.55); display: grid; place-items: center; padding: 16px; }
+    .modal-card { position: relative; width: 100%; max-width: 430px; padding: 28px 26px 24px; background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); max-height: 90vh; overflow-y: auto; }
+    .modal-card.wide { max-width: 520px; }
+    .modal-close { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border-radius: 6px; background: transparent; color: var(--muted); font-size: 1.15rem; line-height: 1; }
+    .modal-close:hover { background: var(--soft); }
+    .modal-title { margin: 0 0 18px; font-size: 1.05rem; }
+    .modal-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid var(--line); margin-bottom: 20px; }
+    .modal-tab { padding: 9px; background: transparent; color: var(--muted); font-weight: 700; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .modal-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+    /* ── Listing bar ── */
+    .listing-bar { width: min(1180px, calc(100% - 32px)); margin: 10px auto 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .listing-chip { padding: 5px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); font-weight: 700; font-size: .88rem; }
+    .listing-chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .listing-chip.new-chip { border-style: dashed; color: var(--brand); background: transparent; }
+    .listing-chip.new-chip:hover { background: var(--soft); }
+
+    /* ── Gallery ── */
+    .hero-gallery { display: grid; grid-template-columns: minmax(0,4fr) minmax(190px,1.22fr); gap: 10px; width: min(1180px,calc(100% - 32px)); margin: 18px auto 0; height: clamp(400px,55vw,540px); touch-action: pan-y; user-select: none; }
+    .hero-gallery:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .hero-gallery.dragging { cursor: grabbing; }
+    .main-photo, .thumb-tile { position: relative; overflow: hidden; background: #dfe6e4; }
+    .main-photo { border-radius: 8px 0 0 8px; }
+    .main-photo img, .thumb-tile img { width: 100%; height: 100%; object-fit: cover; }
+    .main-photo img { min-height: 100%; }
+    .photo-count { position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; min-height: 36px; padding: 7px 11px; border-radius: 6px; background: rgba(255,255,255,.94); font-size: .88rem; font-weight: 850; box-shadow: 0 6px 16px rgba(0,0,0,.14); }
+    .gallery-nav { position: absolute; top: 50%; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; background: rgba(255,255,255,.94); box-shadow: 0 6px 16px rgba(0,0,0,.16); font-size: 1.3rem; font-weight: 900; transform: translateY(-50%); }
+    .gallery-nav.prev { left: 12px; }
+    .gallery-nav.next { right: 12px; }
+    .thumb-grid { display: grid; grid-template-rows: repeat(4,minmax(0,1fr)); gap: 10px; min-height: 0; }
+    .thumb-tile { min-height: 0; }
+    .thumb-tile:first-child { border-radius: 0 8px 0 0; }
+    .thumb-tile:nth-child(4) { border-radius: 0 0 8px 0; }
+    .thumb-tile button { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; }
+    .thumb-more { position: absolute; right: 8px; bottom: 8px; display: inline-flex; align-items: center; min-height: 28px; padding: 5px 8px; border-radius: 6px; background: rgba(31,42,46,.86); color: #fff; font-size: .8rem; font-weight: 850; pointer-events: none; }
+    .thumb-tile.selected { outline: 4px solid var(--accent); outline-offset: -4px; }
+    .empty-gallery { display: grid; place-items: center; min-height: 360px; border: 1px dashed var(--line); border-radius: 8px; background: #fff; color: var(--muted); text-align: center; padding: 24px; }
+
+    /* ── Content layout ── */
+    .content { display: grid; grid-template-columns: minmax(0,1fr) 350px; align-items: start; gap: 22px; width: min(1180px,calc(100% - 32px)); margin: 22px auto 48px; }
+    .section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 20px rgba(31,42,46,.06); }
+    .section-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .section-header h2, .section-header h3 { margin: 0; font-size: 1rem; }
+    .section-desc { padding: 10px 16px; color: var(--muted); font-size: .86rem; border-bottom: 1px solid var(--line); }
+    .month-controls { display: flex; align-items: center; gap: 7px; }
+    .icon-button { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font-weight: 900; }
+
+    /* ── Calendar ── */
+    .calendar { padding: 12px; }
+    .weekdays, .days-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 5px; }
+    .weekdays span { padding: 5px 3px; color: var(--muted); font-size: .76rem; font-weight: 800; text-align: center; text-transform: uppercase; }
+    .day { position: relative; min-height: 84px; padding: 7px; border: 1px solid var(--line); border-radius: 6px; background: #fff; text-align: left; transition: transform 140ms ease, border-color 140ms ease, background 140ms ease; }
+    .day:not(.empty):hover { transform: translateY(-1px); border-color: var(--brand); }
+    .day.empty { background: transparent; border-color: transparent; cursor: default; }
+    .day.free { background: var(--free); }
+    .day.blocked, .day.past { background: var(--blocked); color: #8f5d4e; }
+    .day.selected { border-color: var(--brand-strong); box-shadow: inset 0 0 0 2px var(--brand-strong); }
+    .day.in-range { background: var(--soft); }
+    .day-number { display: block; font-size: .9rem; font-weight: 850; }
+    .day-price, .day-status { display: block; margin-top: 7px; font-size: .8rem; }
+    .day-price { font-weight: 800; }
+    .day-status { color: var(--muted); }
+
+    /* ── Booking box ── */
+    .side-panel { position: sticky; top: 88px; display: grid; gap: 14px; }
+    .booking-box, .host-box { padding: 16px; }
+    .price-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 14px; font-weight: 850; }
+    .price-line strong { font-size: 1.6rem; }
+    .form-grid { display: grid; gap: 11px; }
+    .field { display: grid; gap: 5px; }
+    .field label { color: var(--muted); font-size: .76rem; font-weight: 850; text-transform: uppercase; }
+    .field input, .field select, .field textarea { width: 100%; min-height: 40px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
+    .field textarea { min-height: 82px; resize: vertical; }
+    .date-row, .host-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .primary, .secondary, .danger-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 9px 13px; border-radius: 6px; font-weight: 850; }
+    .primary { background: var(--brand); color: #fff; }
+    .primary:hover { background: var(--brand-strong); }
+    .secondary { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+    .danger-btn { background: #a64632; color: #fff; }
+    .summary { display: grid; gap: 7px; margin: 12px 0; padding: 11px; border-radius: 6px; background: var(--soft); }
+    .summary-row { display: flex; justify-content: space-between; gap: 10px; }
+    .notice { min-height: 22px; color: var(--brand-strong); font-weight: 750; font-size: .88rem; }
+    .notice.error { color: #9d3727; }
+
+    /* ── Amenities (guest view) ── */
+    .amenities-display { display: grid; grid-template-columns: repeat(auto-fill,minmax(148px,1fr)); gap: 7px; padding: 14px; }
+    .amenity-item { display: flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 600; }
+    .amenity-item .aicon { font-size: 1.15rem; }
+
+    /* ── Host mode layout ── */
+    .host-only { display: none; }
+    body.host-mode .customer-only { display: none; }
+    body.host-mode .host-only { display: block; }
+    body.host-mode .host-only.host-layout { display: grid; }
+    body.host-mode .content { display: none; }
+
+    .host-layout { display: grid; grid-template-columns: minmax(0,1fr) 370px; gap: 22px; width: min(1180px,calc(100% - 32px)); margin: 22px auto 48px; }
+    .host-calendar { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 20px rgba(31,42,46,.06); }
+    .host-tools { display: flex; flex-direction: column; gap: 10px; }
+
+    /* host tabs */
+    .host-tabs { display: flex; gap: 3px; padding: 5px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; flex-wrap: wrap; }
+    .host-tab { padding: 7px 12px; border-radius: 5px; background: transparent; color: var(--muted); font-weight: 700; font-size: .85rem; }
+    .host-tab.active { background: var(--brand); color: #fff; }
+    .host-tab-panel { display: none; }
+    .host-tab-panel.active { display: block; }
+
+    /* image manager */
+    .image-manager { display: grid; gap: 10px; padding: 12px; }
+    .image-item { display: grid; grid-template-columns: 90px minmax(0,1fr); gap: 10px; align-items: center; padding: 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .image-item img { width: 90px; height: 70px; border-radius: 6px; object-fit: cover; background: #dfe6e4; }
+    .image-title { overflow: hidden; margin-bottom: 7px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; }
+    .image-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+    .small-button { min-height: 30px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); font-size: .84rem; font-weight: 800; }
+    .small-button.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+    /* amenities editor */
+    .amenities-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); gap: 8px; padding: 12px; }
+    .amenity-chip { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; transition: border-color 110ms, background 110ms; text-align: left; }
+    .amenity-chip.active { border-color: var(--brand); background: var(--soft); }
+    .amenity-icon { font-size: 1.3rem; flex: 0 0 auto; }
+    .amenity-label { font-size: .84rem; font-weight: 700; }
+    .custom-tag { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: .84rem; font-weight: 700; }
+    .custom-tag button { background: transparent; color: var(--muted); font-size: .95rem; padding: 0 2px; line-height: 1; }
+
+    /* listing details */
+    .listing-detail-form { padding: 14px; display: grid; gap: 11px; }
+    .publish-toggle { display: flex; align-items: center; justify-content: space-between; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
+    .publish-toggle span { font-weight: 700; font-size: .9rem; }
+    .toggle-switch { position: relative; width: 42px; height: 22px; flex: 0 0 auto; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; inset: 0; background: var(--line); border-radius: 22px; cursor: pointer; transition: background 180ms; }
+    .toggle-track::after { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 180ms; }
+    input:checked + .toggle-track { background: var(--brand); }
+    input:checked + .toggle-track::after { transform: translateX(20px); }
+
+    /* toast */
+    #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 200; padding: 11px 18px; border-radius: 8px; background: var(--ink); color: #fff; font-weight: 700; font-size: .88rem; box-shadow: var(--shadow); transition: opacity 300ms; pointer-events: none; white-space: nowrap; }
+    #toast.hidden { opacity: 0; }
+
+    /* ── Responsive ── */
     @media (max-width: 900px) {
-      .topbar-inner {
-        align-items: stretch;
-        flex-direction: column;
-      }
-
-      .view-switch {
-        width: 100%;
-      }
-
-      .view-switch button {
-        min-width: 0;
-      }
-
-      .hero-gallery,
-      .content,
-      .host-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .main-photo {
-        border-radius: 8px;
-      }
-
-      .main-photo img {
-        min-height: 100%;
-      }
-
-      .thumb-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        grid-template-rows: none;
-      }
-
-      .thumb-tile,
-      .thumb-tile:first-child,
-      .thumb-tile:nth-child(4) {
-        min-height: 120px;
-        border-radius: 8px;
-      }
-
-      .side-panel {
-        position: static;
-      }
+      .topbar-inner { align-items: stretch; flex-direction: column; }
+      .view-switch { width: 100%; }
+      .view-switch button { min-width: 0; }
+      .hero-gallery, .content, .host-layout { grid-template-columns: 1fr; }
+      .main-photo { border-radius: 8px; }
+      .thumb-grid { grid-template-columns: repeat(4,minmax(0,1fr)); grid-template-rows: none; }
+      .thumb-tile, .thumb-tile:first-child, .thumb-tile:nth-child(4) { min-height: 110px; border-radius: 8px; }
+      .side-panel { position: static; }
     }
-
     @media (max-width: 640px) {
-      .topbar-inner,
-      .hero-gallery,
-      .content,
-      .host-layout {
-        width: min(100% - 20px, 1180px);
-      }
-
-      .brand p {
-        font-size: 0.86rem;
-      }
-
-      .thumb-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .day {
-        min-height: 72px;
-        padding: 6px;
-      }
-
-      .day-price,
-      .day-status {
-        margin-top: 4px;
-        font-size: 0.7rem;
-      }
-
-      .date-row,
-      .host-actions {
-        grid-template-columns: 1fr;
-      }
-
-      .section-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
+      .topbar-inner, .hero-gallery, .content, .host-layout { width: min(100% - 18px, 1180px); }
+      .thumb-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .day { min-height: 68px; padding: 5px; }
+      .day-price, .day-status { margin-top: 3px; font-size: .68rem; }
+      .date-row, .host-actions { grid-template-columns: 1fr; }
+      .kanban-board { grid-template-columns: 1fr; }
     }
+
+    /* ── Logistics full-width mode ── */
+    .host-only.host-layout.logistics-mode { grid-template-columns: 1fr; }
+    .logistics-mode .host-calendar { display: none; }
+
+    /* ── Logistics sub-tabs ── */
+    .log-tabs { display: flex; gap: 3px; padding: 6px 8px; border-bottom: 1px solid var(--line); background: var(--paper); }
+    .log-tab { padding: 6px 12px; border-radius: 5px; background: transparent; color: var(--muted); font-weight: 700; font-size: .84rem; }
+    .log-tab.active { background: var(--brand-strong); color: #fff; }
+    .log-tab-panel { display: none; }
+    .log-tab-panel.active { display: block; }
+
+    /* ── Visit bar ── */
+    .visit-bar { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; background: var(--soft); }
+    .visit-num { font-size: 2rem; font-weight: 900; color: var(--brand); line-height: 1; }
+    .visit-label { color: var(--muted); font-size: .85rem; }
+
+    /* ── Alarm banner ── */
+    .alarm-banner { margin: 10px 14px 0; padding: 10px 14px; background: #fff8e1; border: 1px solid #f0c040; border-radius: 8px; }
+    .alarm-banner-title { font-weight: 800; margin-bottom: 6px; }
+    .alarm-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; border-top: 1px solid rgba(0,0,0,.07); font-size: .85rem; }
+    .alarm-row-msg { flex: 1; }
+    .alarm-row-name { font-weight: 700; }
+
+    /* ── Kanban board ── */
+    .kanban-board { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; padding: 12px 14px; }
+    .kanban-col { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .kanban-col-hd { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+    .kanban-col-title { font-weight: 800; font-size: .84rem; }
+    .kanban-body { min-height: 72px; padding: 8px; display: flex; flex-direction: column; gap: 6px; transition: background 120ms; }
+    .kanban-body.drag-over { background: var(--soft); outline: 2px dashed var(--brand); outline-offset: -2px; border-radius: 4px; }
+    .set-block { display: flex; align-items: center; gap: 8px; padding: 7px 9px; background: #fff; border: 1px solid var(--line); border-radius: 6px; cursor: grab; user-select: none; transition: opacity 140ms; }
+    .set-block:active { cursor: grabbing; }
+    .set-block.dragging { opacity: .35; }
+    .set-thumb { width: 28px; height: 28px; border-radius: 5px; background: var(--soft); display: grid; place-items: center; font-size: 1.1rem; flex: 0 0 auto; overflow: hidden; }
+    .set-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .set-label { flex: 1; font-size: .82rem; font-weight: 700; }
+
+    /* ── Cyclic item card ── */
+    .cyclic-card { border: 1px solid var(--line); border-radius: 8px; margin: 10px 14px; overflow: hidden; background: #fff; }
+    .cyclic-card-hd { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--paper); }
+    .item-thumb { width: 38px; height: 38px; border-radius: 7px; background: var(--soft); display: grid; place-items: center; font-size: 1.45rem; flex: 0 0 auto; overflow: hidden; }
+    .item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .cyclic-empty { padding: 22px; text-align: center; color: var(--muted); font-size: .9rem; }
+
+    /* ── Consumables ── */
+    .cons-list { display: grid; gap: 0; }
+    .cons-card { display: grid; grid-template-columns: 42px minmax(0,1fr); gap: 12px; align-items: start; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    .cons-thumb { width: 42px; height: 42px; background: var(--soft); border-radius: 8px; display: grid; place-items: center; font-size: 1.5rem; }
+    .cons-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+    .cons-name { font-weight: 800; font-size: .92rem; margin-bottom: 4px; }
+    .progress-track { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 6px 0 4px; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 300ms; }
+    .fill-green { background: #2ea04b; }
+    .fill-amber { background: #d4a017; }
+    .fill-red   { background: #a64632; }
+    .qty-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .qty-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line); background: #fff; font-size: 1.05rem; font-weight: 900; display: grid; place-items: center; }
+    .qty-val { min-width: 28px; text-align: center; font-weight: 800; font-size: .95rem; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: .76rem; font-weight: 800; }
+    .badge-ok  { background: var(--free);    color: #1a6b2e; }
+    .badge-low { background: #fff3cd;        color: #7a5a20; }
+    .badge-out { background: var(--blocked); color: #8f3320; }
+
+    /* ── Alarm cards ── */
+    .alarm-card { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+    .alarm-info { flex: 1; min-width: 0; }
+    .alarm-name { font-weight: 800; font-size: .9rem; }
+    .alarm-rule { font-size: .8rem; color: var(--muted); }
+    .alarm-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+    .abadge { padding: 2px 7px; border-radius: 4px; font-size: .74rem; font-weight: 800; background: var(--soft); color: var(--brand-strong); }
+    .abadge.triggered { background: var(--blocked); color: #8f3320; }
+
+    /* ── Icon picker ── */
+    .icon-picker-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 5px; padding: 10px; max-height: 200px; overflow-y: auto; }
+    .icon-opt { padding: 7px; border-radius: 6px; background: #fff; border: 1px solid var(--line); font-size: 1.3rem; cursor: pointer; text-align: center; transition: border-color 100ms, background 100ms; }
+    .icon-opt:hover, .icon-opt.selected { border-color: var(--brand); background: var(--soft); }
+
+    /* ── Contents rows ── */
+    .contents-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .contents-row input[type=text]   { flex: 1; min-height: 36px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; }
+    .contents-row input[type=number] { width: 62px; min-height: 36px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; }
+    .rm-row-btn { background: transparent; color: var(--muted); font-size: 1.1rem; padding: 0 4px; flex: 0 0 auto; }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div class="topbar-inner">
-        <div class="brand">
-          <h1>Holiday House</h1>
-          <p>Gallery, availability and booking requests</p>
-        </div>
-        <nav class="view-switch" aria-label="View">
-          <button id="customerView" class="active" type="button">Customer</button>
-          <button id="hostView" type="button">Host</button>
-        </nav>
+
+<!-- ═══ Auth Modal ═══ -->
+<div id="authModal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <button class="modal-close" id="closeAuthModal" type="button" aria-label="Close">×</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabLogin" type="button">Sign in</button>
+      <button class="modal-tab" id="tabRegister" type="button">Create account</button>
+    </div>
+
+    <!-- Login -->
+    <form id="loginForm" class="form-grid">
+      <div class="field">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" type="email" autocomplete="email" required placeholder="your@email.com">
       </div>
-    </header>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="primary" type="submit">Sign in</button>
+      <div class="notice" id="loginNotice" role="status"></div>
+    </form>
 
-    <main>
-      <section id="gallery" class="hero-gallery" aria-label="House photos" tabindex="0"></section>
+    <!-- Register -->
+    <form id="registerForm" class="form-grid hidden">
+      <div class="field">
+        <label for="regName">Full name</label>
+        <input id="regName" autocomplete="name" required placeholder="Jane Doe">
+      </div>
+      <div class="field">
+        <label for="regEmail">Email</label>
+        <input id="regEmail" type="email" autocomplete="email" required placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <label for="regPassword">Password</label>
+        <input id="regPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Min. 6 characters">
+      </div>
+      <div class="field">
+        <label for="regRole">I want to</label>
+        <select id="regRole">
+          <option value="guest">Browse and book properties</option>
+          <option value="host">List and manage my property</option>
+        </select>
+      </div>
+      <div class="field" id="regClaimField" style="display:none">
+        <label for="regClaimListing">Property to manage</label>
+        <select id="regClaimListing"></select>
+      </div>
+      <button class="primary" type="submit">Create account</button>
+      <div class="notice" id="registerNotice" role="status"></div>
+    </form>
+  </div>
+</div>
 
-      <section class="content customer-only">
+<!-- ═══ New Listing Modal ═══ -->
+<div id="newListingModal" class="modal-backdrop hidden">
+  <div class="modal-card wide">
+    <button class="modal-close" id="closeNewListing" type="button" aria-label="Close">×</button>
+    <h2 class="modal-title">New listing</h2>
+    <form id="newListingForm" class="form-grid">
+      <div class="field">
+        <label for="nlTitle">Title</label>
+        <input id="nlTitle" required placeholder="e.g. Cosy apartment near the beach">
+      </div>
+      <div class="field">
+        <label for="nlLocation">Location</label>
+        <input id="nlLocation" placeholder="City, Country">
+      </div>
+      <div class="field">
+        <label for="nlDescription">Description</label>
+        <textarea id="nlDescription" placeholder="Describe your property…"></textarea>
+      </div>
+      <div class="field">
+        <label for="nlBasePrice">Base nightly price (EUR)</label>
+        <input id="nlBasePrice" type="number" min="0" step="1" value="100">
+      </div>
+      <button class="primary" type="submit">Create listing</button>
+      <div class="notice" id="newListingNotice" role="status"></div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="hidden" role="status" aria-live="polite"></div>
+
+<!-- ═══ Add Cyclic Item Modal ═══ -->
+<div id="addCyclicModal" class="modal-backdrop hidden">
+  <div class="modal-card wide" style="max-width:540px">
+    <button class="modal-close" id="closeCyclicModal" type="button">×</button>
+    <h2 class="modal-title">Add cyclic item type</h2>
+    <form id="addCyclicForm" class="form-grid">
+      <div class="field">
+        <label for="ciName">Name</label>
+        <input id="ciName" required placeholder="e.g. Laundry set, Towel bundle…">
+      </div>
+      <div class="field">
+        <label>Icon</label>
+        <div class="icon-picker-grid" id="cyclicIconGrid"></div>
+      </div>
+      <div class="field">
+        <label for="ciPhoto">Or upload a photo</label>
+        <input id="ciPhoto" type="file" accept="image/*">
+        <div id="ciPhotoPreview" style="margin-top:6px"></div>
+      </div>
+      <div class="field">
+        <label>Contents per set</label>
+        <div id="ciContentsRows"></div>
+        <button type="button" id="addContentsRow" class="secondary" style="margin-top:6px;min-height:34px;padding:6px 12px;font-size:.85rem">+ Add item</button>
+      </div>
+      <div class="field">
+        <label for="ciInitSets">Create this many sets initially (all go to Storage)</label>
+        <input id="ciInitSets" type="number" min="1" max="20" value="3">
+      </div>
+      <button class="primary" type="submit">Create</button>
+      <div class="notice" id="ciNotice" role="status"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ Add Consumable Modal ═══ -->
+<div id="addConsumableModal" class="modal-backdrop hidden">
+  <div class="modal-card wide" style="max-width:480px">
+    <button class="modal-close" id="closeConsumableModal" type="button">×</button>
+    <h2 class="modal-title">Add consumable</h2>
+    <form id="addConsumableForm" class="form-grid">
+      <div class="field">
+        <label for="conName">Name</label>
+        <input id="conName" required placeholder="e.g. Toilet paper, Dish soap…">
+      </div>
+      <div class="field">
+        <label>Icon</label>
+        <div class="icon-picker-grid" id="consumableIconGrid"></div>
+      </div>
+      <div class="field">
+        <label for="conPhoto">Or upload a photo</label>
+        <input id="conPhoto" type="file" accept="image/*">
+        <div id="conPhotoPreview" style="margin-top:6px"></div>
+      </div>
+      <div class="field">
+        <label for="conType">Tracking type</label>
+        <select id="conType">
+          <option value="count">Countable (units/rolls/bottles…)</option>
+          <option value="visit">Visit-based threshold (refill every N visits)</option>
+        </select>
+      </div>
+      <div id="conCountFields">
+        <div class="field">
+          <label for="conQty">Current quantity</label>
+          <input id="conQty" type="number" min="0" value="1">
+        </div>
+        <div class="field">
+          <label for="conUnit">Unit label (rolls, bottles, bars…)</label>
+          <input id="conUnit" placeholder="rolls">
+        </div>
+        <div class="field">
+          <label for="conAlertBelow">Alert when below</label>
+          <input id="conAlertBelow" type="number" min="0" value="2">
+        </div>
+      </div>
+      <div id="conVisitFields" style="display:none">
+        <div class="field">
+          <label for="conVisitsPerRefill">Refill every N visits</label>
+          <input id="conVisitsPerRefill" type="number" min="1" value="10">
+        </div>
+      </div>
+      <button class="primary" type="submit">Add</button>
+      <div class="notice" id="conNotice" role="status"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ Add Alarm Modal ═══ -->
+<div id="addAlarmModal" class="modal-backdrop hidden">
+  <div class="modal-card wide" style="max-width:460px">
+    <button class="modal-close" id="closeAlarmModal" type="button">×</button>
+    <h2 class="modal-title">Add alarm rule</h2>
+    <form id="addAlarmForm" class="form-grid">
+      <div class="field">
+        <label for="almName">Label</label>
+        <input id="almName" required placeholder="e.g. Low clean sheets">
+      </div>
+      <div class="field">
+        <label for="almType">Rule type</label>
+        <select id="almType">
+          <option value="cyclic">Cyclic item — storage below threshold</option>
+          <option value="consumable">Consumable — quantity/visits threshold</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="almItem">Item to watch</label>
+        <select id="almItem"></select>
+      </div>
+      <div class="field" id="almThresholdField">
+        <label for="almThreshold">Alert when clean sets in storage fall below</label>
+        <input id="almThreshold" type="number" min="1" value="1">
+      </div>
+      <div class="field">
+        <label>Notify via</label>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;text-transform:none;color:var(--ink);font-weight:600">
+            <input type="checkbox" id="almNotifyPage"> In-page notification
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;text-transform:none;color:var(--ink);font-weight:600">
+            <input type="checkbox" id="almNotifyBrowser"> Browser push notification
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;text-transform:none;color:var(--ink);font-weight:600">
+            <input type="checkbox" id="almNotifyEmail"> Email reminder
+          </label>
+        </div>
+      </div>
+      <div class="field" id="almEmailField" style="display:none">
+        <label for="almEmail">Recipient email</label>
+        <input id="almEmail" type="email" placeholder="your@email.com">
+      </div>
+      <button class="primary" type="submit">Save alarm</button>
+      <div class="notice" id="almNotice" role="status"></div>
+    </form>
+  </div>
+</div>
+
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <h1 id="brandTitle">Holiday House</h1>
+        <p id="brandSubtitle">Gallery, availability and booking requests</p>
+      </div>
+      <div class="topbar-right">
+        <nav class="view-switch" aria-label="View mode">
+          <button id="customerView" class="active" type="button">Guest</button>
+          <button id="hostView" type="button" style="display:none">Host</button>
+        </nav>
+        <div class="auth-wrap">
+          <button class="btn-signin" id="btnSignin" type="button">Sign in</button>
+          <div class="user-pill hidden" id="userPill" role="button" tabindex="0" aria-haspopup="true">
+            <div class="avatar" id="userAvatar"></div>
+            <span id="userNameLabel"></span>
+          </div>
+          <div class="user-menu hidden" id="userMenu" role="menu">
+            <button class="menu-item" id="menuHostMode" type="button" style="display:none">My listings</button>
+            <button class="menu-item danger" id="menuLogout" type="button">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Listing bar (multi-listing selector) -->
+  <div id="listingBar" class="listing-bar hidden"></div>
+
+  <main>
+    <section id="gallery" class="hero-gallery" aria-label="House photos" tabindex="0"></section>
+
+    <!-- ── Guest view ── -->
+    <section class="content customer-only">
+      <div>
         <div class="section">
           <div class="section-header">
             <h2 id="customerMonthLabel">Availability</h2>
@@ -755,682 +563,1702 @@
           <div class="calendar" id="customerCalendar"></div>
         </div>
 
-        <aside class="side-panel">
-          <div class="section booking-box">
-            <div class="price-line">
-              <span>From</span>
-              <strong id="fromPrice">EUR 0</strong>
-            </div>
-            <form id="bookingForm" class="form-grid">
-              <div class="date-row">
-                <div class="field">
-                  <label for="checkIn">Check-in</label>
-                  <input id="checkIn" name="checkIn" type="date" required>
-                </div>
-                <div class="field">
-                  <label for="checkOut">Check-out</label>
-                  <input id="checkOut" name="checkOut" type="date" required>
-                </div>
-              </div>
-              <div class="field">
-                <label for="guestName">Name</label>
-                <input id="guestName" name="guestName" autocomplete="name" required>
-              </div>
-              <div class="field">
-                <label for="guestEmail">Email</label>
-                <input id="guestEmail" name="guestEmail" type="email" autocomplete="email" required>
-              </div>
-              <div class="field">
-                <label for="guests">Guests</label>
-                <select id="guests" name="guests">
-                  <option>1 guest</option>
-                  <option selected>2 guests</option>
-                  <option>3 guests</option>
-                  <option>4 guests</option>
-                  <option>5 guests</option>
-                  <option>6 guests</option>
-                </select>
-              </div>
-              <div class="summary" id="bookingSummary"></div>
-              <button class="primary" type="submit">Request booking</button>
-              <div class="notice" id="bookingNotice" role="status"></div>
-            </form>
-          </div>
-        </aside>
-      </section>
-
-      <section class="host-only host-layout">
-        <div class="host-calendar">
-          <div class="section-header">
-            <h2 id="hostMonthLabel">Availability</h2>
-            <div class="month-controls">
-              <button class="icon-button" id="hostPrev" type="button" aria-label="Previous month">&lt;</button>
-              <button class="icon-button" id="hostNext" type="button" aria-label="Next month">&gt;</button>
-            </div>
-          </div>
-          <div class="calendar" id="hostCalendar"></div>
+        <!-- Amenities (guest) -->
+        <div class="section" id="amenitiesSection" style="margin-top:16px;display:none">
+          <div class="section-header"><h2>What this place offers</h2></div>
+          <div id="amenitiesDisplayGrid" class="amenities-display"></div>
         </div>
+      </div>
 
-        <div class="host-tools">
-          <div class="section host-box">
-            <div class="section-header">
-              <h3>Dates and prices</h3>
-            </div>
-            <form id="availabilityForm" class="form-grid">
-              <div class="date-row">
-                <div class="field">
-                  <label for="hostStart">Start</label>
-                  <input id="hostStart" type="date" required>
-                </div>
-                <div class="field">
-                  <label for="hostEnd">End</label>
-                  <input id="hostEnd" type="date" required>
-                </div>
-              </div>
-              <div class="field">
-                <label for="hostStatus">Availability</label>
-                <select id="hostStatus">
-                  <option value="free">Free</option>
-                  <option value="blocked">Blocked</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="hostPrice">Nightly price</label>
-                <input id="hostPrice" type="number" min="0" step="1" value="120">
-              </div>
-              <div class="host-actions">
-                <button class="primary" type="submit">Apply</button>
-                <button class="secondary" id="resetCalendar" type="button">Reset dates</button>
-              </div>
-              <div class="notice" id="hostNotice" role="status"></div>
-            </form>
+      <aside class="side-panel">
+        <div class="section booking-box">
+          <div class="price-line">
+            <span>From</span>
+            <strong id="fromPrice">EUR 0</strong>
           </div>
-
-          <div class="section">
-            <div class="section-header">
-              <h3>Photos</h3>
-            </div>
-            <div class="image-manager">
+          <form id="bookingForm" class="form-grid">
+            <div class="date-row">
               <div class="field">
-                <label for="imageUpload">Add photos</label>
-                <input id="imageUpload" type="file" accept="image/*" multiple>
+                <label for="checkIn">Check-in</label>
+                <input id="checkIn" name="checkIn" type="date" required>
               </div>
-              <div id="imageList" class="image-manager"></div>
-              <button class="secondary" id="resetImages" type="button">Reset photos</button>
+              <div class="field">
+                <label for="checkOut">Check-out</label>
+                <input id="checkOut" name="checkOut" type="date" required>
+              </div>
             </div>
+            <div class="field">
+              <label for="guestName">Name</label>
+              <input id="guestName" name="guestName" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="guestEmail">Email</label>
+              <input id="guestEmail" name="guestEmail" type="email" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label for="guests">Guests</label>
+              <select id="guests" name="guests">
+                <option>1 guest</option><option selected>2 guests</option><option>3 guests</option>
+                <option>4 guests</option><option>5 guests</option><option>6 guests</option>
+              </select>
+            </div>
+            <div class="summary" id="bookingSummary"></div>
+            <button class="primary" type="submit">Request booking</button>
+            <div class="notice" id="bookingNotice" role="status"></div>
+          </form>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ── Host view ── -->
+    <section class="host-only host-layout">
+      <div class="host-calendar">
+        <div class="section-header">
+          <h2 id="hostMonthLabel">Availability</h2>
+          <div class="month-controls">
+            <button class="icon-button" id="hostPrev" type="button" aria-label="Previous month">&lt;</button>
+            <button class="icon-button" id="hostNext" type="button" aria-label="Next month">&gt;</button>
           </div>
         </div>
-      </section>
-    </main>
-  </div>
+        <div class="calendar" id="hostCalendar"></div>
+      </div>
 
-  <script>
-    const defaultImages = [
-      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (3).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (2).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (1).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (4).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.37.33 (5).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.37.33.jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (1).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (2).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (3).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (4).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (5).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.38.41 (6).jpeg",
-      "Images/WhatsApp Image 2026-01-30 at 22.38.41.jpeg",
-      "Images/WhatsApp Image 2026-03-05 at 11.52.46.jpeg",
-      "Images/WhatsApp Image 2026-05-27 at 21.22.32 (1).jpeg",
-      "Images/WhatsApp Image 2026-05-27 at 21.22.32 (2).jpeg",
-      "Images/WhatsApp Image 2026-05-27 at 21.22.32.jpeg",
-      "Images/WhatsApp Image 2026-05-27 at 21.22.33 (1).jpeg",
-      "Images/WhatsApp Image 2026-05-27 at 21.22.33 (2).jpeg",
-      "Images/WhatsApp Image 2026-05-27 at 21.22.33.jpeg"
-    ].map((src, index) => ({
-      id: `default-${index}`,
-      name: src.split("/").pop(),
-      src,
-      active: true
+      <div class="host-tools">
+        <!-- Tab bar -->
+        <div class="host-tabs">
+          <button class="host-tab active" data-tab="availability" type="button">Availability</button>
+          <button class="host-tab" data-tab="photos" type="button">Photos</button>
+          <button class="host-tab" data-tab="amenities" type="button">Amenities</button>
+          <button class="host-tab" data-tab="details" type="button">Listing details</button>
+          <button class="host-tab" data-tab="logistics" type="button">Logistics</button>
+        </div>
+
+        <!-- ▸ Availability panel -->
+        <div class="section host-tab-panel active" id="panel-availability">
+          <div class="section-header"><h3>Dates and prices</h3></div>
+          <form id="availabilityForm" class="form-grid" style="padding:14px">
+            <div class="date-row">
+              <div class="field">
+                <label for="hostStart">Start</label>
+                <input id="hostStart" type="date" required>
+              </div>
+              <div class="field">
+                <label for="hostEnd">End</label>
+                <input id="hostEnd" type="date" required>
+              </div>
+            </div>
+            <div class="field">
+              <label for="hostStatus">Availability</label>
+              <select id="hostStatus">
+                <option value="free">Free</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="hostPrice">Nightly price (EUR)</label>
+              <input id="hostPrice" type="number" min="0" step="1" value="120">
+            </div>
+            <div class="host-actions">
+              <button class="primary" type="submit">Apply</button>
+              <button class="secondary" id="resetCalendar" type="button">Reset all dates</button>
+            </div>
+            <div class="notice" id="hostNotice" role="status"></div>
+          </form>
+        </div>
+
+        <!-- ▸ Photos panel -->
+        <div class="section host-tab-panel" id="panel-photos">
+          <div class="section-header"><h3>Photos</h3></div>
+          <div class="image-manager">
+            <div class="field">
+              <label for="imageUpload">Add photos</label>
+              <input id="imageUpload" type="file" accept="image/*" multiple>
+            </div>
+            <div id="imageList"></div>
+            <button class="secondary" id="resetImages" type="button">Reset to defaults</button>
+          </div>
+        </div>
+
+        <!-- ▸ Amenities panel -->
+        <div class="section host-tab-panel" id="panel-amenities">
+          <div class="section-header"><h3>Amenities</h3></div>
+          <p class="section-desc">Toggle what your property offers — guests will see these on the listing page.</p>
+          <div id="amenitiesEditor" class="amenities-grid"></div>
+          <div style="padding:12px 14px;border-top:1px solid var(--line)">
+            <div class="field">
+              <label for="customAmenityInput">Add custom amenity</label>
+              <div style="display:flex;gap:7px">
+                <input id="customAmenityInput" placeholder="e.g. Sauna, Fireplace…"
+                  style="flex:1;min-height:40px;padding:9px 10px;border:1px solid var(--line);border-radius:6px">
+                <button class="secondary" id="addCustomAmenity" type="button" style="flex:0 0 auto;padding:0 14px">Add</button>
+              </div>
+            </div>
+            <div id="customAmenitiesList" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:9px"></div>
+          </div>
+        </div>
+
+        <!-- ▸ Logistics panel -->
+        <div class="section host-tab-panel" id="panel-logistics">
+          <!-- Visit bar -->
+          <div class="visit-bar">
+            <div>
+              <div class="visit-num" id="visitCountDisplay">0</div>
+              <div class="visit-label">guest check-outs recorded</div>
+            </div>
+            <button class="primary" id="recordVisitBtn" type="button" style="min-height:38px;padding:8px 14px">Record check-out</button>
+          </div>
+          <!-- Alarm banner (shown when alarms fire) -->
+          <div id="alarmBanner" style="display:none"></div>
+          <!-- Sub-tabs -->
+          <div class="log-tabs">
+            <button class="log-tab active" data-ltab="cyclic"      type="button">Cyclic items</button>
+            <button class="log-tab"        data-ltab="consumables" type="button">Consumables</button>
+            <button class="log-tab"        data-ltab="alarms"      type="button">Alarms</button>
+          </div>
+          <!-- Cyclic -->
+          <div class="log-tab-panel active" id="lpanel-cyclic">
+            <div style="display:flex;justify-content:flex-end;padding:10px 14px 0">
+              <button class="secondary" id="addCyclicBtn" type="button">+ Add item type</button>
+            </div>
+            <div id="cyclicItemsList"></div>
+          </div>
+          <!-- Consumables -->
+          <div class="log-tab-panel" id="lpanel-consumables">
+            <div style="display:flex;justify-content:flex-end;padding:10px 14px 0">
+              <button class="secondary" id="addConsumableBtn" type="button">+ Add consumable</button>
+            </div>
+            <div class="cons-list" id="consumablesList"></div>
+          </div>
+          <!-- Alarms -->
+          <div class="log-tab-panel" id="lpanel-alarms">
+            <div style="display:flex;justify-content:flex-end;padding:10px 14px 0">
+              <button class="secondary" id="addAlarmBtn" type="button">+ Add alarm rule</button>
+            </div>
+            <div id="alarmsList"></div>
+          </div>
+        </div>
+
+        <!-- ▸ Listing details panel -->
+        <div class="section host-tab-panel" id="panel-details">
+          <div class="section-header"><h3>Listing details</h3></div>
+          <form id="listingDetailsForm" class="listing-detail-form">
+            <div class="field">
+              <label for="detailTitle">Title</label>
+              <input id="detailTitle" required>
+            </div>
+            <div class="field">
+              <label for="detailLocation">Location</label>
+              <input id="detailLocation" placeholder="City, Country">
+            </div>
+            <div class="field">
+              <label for="detailDescription">Description</label>
+              <textarea id="detailDescription"></textarea>
+            </div>
+            <div class="field">
+              <label for="detailBasePrice">Base nightly price (EUR)</label>
+              <input id="detailBasePrice" type="number" min="0" step="1">
+            </div>
+            <div class="publish-toggle">
+              <span>Published (visible to guests)</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="detailPublished">
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+            <button class="primary" type="submit">Save details</button>
+            <div class="notice" id="detailsNotice" role="status"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  Constants
+// ═══════════════════════════════════════════════════════════
+const APP_KEY = 'holiday-house-v2';
+
+const AMENITY_DEFS = [
+  { id: 'wifi',       label: 'WiFi',             icon: '📶' },
+  { id: 'kitchen',    label: 'Kitchen',           icon: '🍳' },
+  { id: 'parking',    label: 'Free parking',      icon: '🅿️' },
+  { id: 'ac',         label: 'Air conditioning',  icon: '❄️' },
+  { id: 'heating',    label: 'Heating',           icon: '🌡️' },
+  { id: 'washer',     label: 'Washer',            icon: '🫧' },
+  { id: 'dryer',      label: 'Dryer',             icon: '🌀' },
+  { id: 'tv',         label: 'TV',                icon: '📺' },
+  { id: 'pool',       label: 'Pool',              icon: '🏊' },
+  { id: 'bbq',        label: 'BBQ grill',         icon: '🍖' },
+  { id: 'workspace',  label: 'Workspace',         icon: '💻' },
+  { id: 'gym',        label: 'Gym',               icon: '💪' },
+  { id: 'pets',       label: 'Pets allowed',      icon: '🐾' },
+  { id: 'elevator',   label: 'Elevator',          icon: '🛗' },
+  { id: 'accessible', label: 'Wheelchair access', icon: '♿' },
+  { id: 'smoking',    label: 'Smoking allowed',   icon: '🚬' },
+];
+
+const DEFAULT_IMAGES = [
+  "Images/WhatsApp Image 2026-01-30 at 22.37.33 (3).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.37.33 (2).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.37.33 (1).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.37.33 (4).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.37.33 (5).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.37.33.jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.38.41 (1).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.38.41 (2).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.38.41 (3).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.38.41 (4).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.38.41 (5).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.38.41 (6).jpeg",
+  "Images/WhatsApp Image 2026-01-30 at 22.38.41.jpeg",
+  "Images/WhatsApp Image 2026-03-05 at 11.52.46.jpeg",
+  "Images/WhatsApp Image 2026-05-27 at 21.22.32 (1).jpeg",
+  "Images/WhatsApp Image 2026-05-27 at 21.22.32 (2).jpeg",
+  "Images/WhatsApp Image 2026-05-27 at 21.22.32.jpeg",
+  "Images/WhatsApp Image 2026-05-27 at 21.22.33 (1).jpeg",
+  "Images/WhatsApp Image 2026-05-27 at 21.22.33 (2).jpeg",
+  "Images/WhatsApp Image 2026-05-27 at 21.22.33.jpeg"
+].map((src, i) => ({ id: `default-${i}`, name: src.split('/').pop(), src, active: true }));
+
+// ═══════════════════════════════════════════════════════════
+//  State helpers
+// ═══════════════════════════════════════════════════════════
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function blankListing(hostId, title = 'My Holiday House') {
+  return {
+    id: `listing-${makeId()}`,
+    title,
+    description: '',
+    location: '',
+    hostId,
+    images: DEFAULT_IMAGES.map(img => ({ ...img })),
+    dates: {},
+    amenities: {},
+    customAmenities: [],
+    basePrice: 120,
+    published: true,
+    logistics: { cyclicItems: [], consumables: [], alarms: [], visitCount: 0 }
+  };
+}
+
+function seedState() {
+  const defaultListing = blankListing(null, 'Holiday House');
+  defaultListing.id = 'listing-default';
+  // Migrate old state if present
+  try {
+    const old = JSON.parse(localStorage.getItem('holiday-house-state-v1') || 'null');
+    if (old) {
+      if (Array.isArray(old.images) && old.images.length) defaultListing.images = old.images;
+      if (old.dates) defaultListing.dates = old.dates;
+    }
+  } catch {}
+  return { users: [], listings: [defaultListing], session: { userId: null } };
+}
+
+function loadApp() {
+  try {
+    const raw = localStorage.getItem(APP_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return seedState();
+}
+
+function saveApp() {
+  localStorage.setItem(APP_KEY, JSON.stringify(app));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Runtime state
+// ═══════════════════════════════════════════════════════════
+let app = loadApp();
+let currentListingId = app.listings[0]?.id || null;
+let viewMode = 'customer';
+let customerMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+let hostMonth    = new Date(today.getFullYear(), today.getMonth(), 1);
+let currentImage = 0;
+let activeTab = 'availability';
+
+// ═══════════════════════════════════════════════════════════
+//  Accessors
+// ═══════════════════════════════════════════════════════════
+function currentUser() {
+  const id = app.session?.userId;
+  return id ? app.users.find(u => u.id === id) || null : null;
+}
+
+function currentListing() {
+  return app.listings.find(l => l.id === currentListingId) || app.listings[0] || null;
+}
+
+function myListings() {
+  const u = currentUser();
+  return u ? app.listings.filter(l => l.hostId === u.id) : [];
+}
+
+function unclaimedListings() {
+  return app.listings.filter(l => !l.hostId);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Utilities
+// ═══════════════════════════════════════════════════════════
+function fmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function parseDate(v) {
+  if (!v) return null;
+  const [y,m,d] = v.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+function monthLabel(d) {
+  return d.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+}
+function defPrice(d) {
+  const day = d.getDay();
+  return day === 5 || day === 6 ? 145 : 120;
+}
+function dateInfo(d) {
+  const listing = currentListing();
+  const saved = listing?.dates?.[fmtDate(d)] || {};
+  return { status: saved.status || 'free', price: Number(saved.price || defPrice(d)) };
+}
+function activeImages() {
+  return (currentListing()?.images || []).filter(img => img.active !== false);
+}
+function simpleHash(s) { return btoa(unescape(encodeURIComponent(s))); }
+
+function toast(msg, ms = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hidden'), ms);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Auth
+// ═══════════════════════════════════════════════════════════
+function doLogin(email, password) {
+  const u = app.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (!u) return 'No account found with that email.';
+  if (u.passwordHash !== simpleHash(password)) return 'Incorrect password.';
+  app.session = { userId: u.id };
+  saveApp();
+  return null;
+}
+
+function doRegister(name, email, password, role, claimId) {
+  if (app.users.find(u => u.email.toLowerCase() === email.toLowerCase()))
+    return 'An account with this email already exists.';
+  const user = { id: `user-${makeId()}`, name, email, passwordHash: simpleHash(password), role };
+  app.users.push(user);
+  app.session = { userId: user.id };
+  if (role === 'host') {
+    if (claimId && claimId !== 'new') {
+      const listing = app.listings.find(l => l.id === claimId && !l.hostId);
+      if (listing) { listing.hostId = user.id; currentListingId = listing.id; }
+      else { const nl = blankListing(user.id, `${name}'s Place`); app.listings.push(nl); currentListingId = nl.id; }
+    } else {
+      const nl = blankListing(user.id, `${name}'s Place`);
+      app.listings.push(nl);
+      currentListingId = nl.id;
+    }
+  }
+  saveApp();
+  return null;
+}
+
+function doLogout() {
+  app.session = { userId: null };
+  saveApp();
+  if (viewMode === 'host') setMode('customer', true);
+  else { updateAuthUI(); renderListingBar(); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Auth modal
+// ═══════════════════════════════════════════════════════════
+function openAuth(tab) {
+  document.getElementById('authModal').classList.remove('hidden');
+  switchAuthTab(tab || 'login');
+}
+function closeAuth() {
+  document.getElementById('authModal').classList.add('hidden');
+  document.getElementById('loginNotice').textContent = '';
+  document.getElementById('registerNotice').textContent = '';
+}
+function switchAuthTab(tab) {
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+}
+
+// Populate claim-listing select whenever role changes
+document.getElementById('regRole').addEventListener('change', function () {
+  const field  = document.getElementById('regClaimField');
+  const select = document.getElementById('regClaimListing');
+  if (this.value === 'host') {
+    const unclaimed = unclaimedListings();
+    select.innerHTML = '<option value="new">Create a new listing</option>' +
+      unclaimed.map(l => `<option value="${l.id}">${l.title} (unclaimed)</option>`).join('');
+    field.style.display = '';
+  } else {
+    field.style.display = 'none';
+  }
+});
+
+document.getElementById('tabLogin').addEventListener('click', () => switchAuthTab('login'));
+document.getElementById('tabRegister').addEventListener('click', () => switchAuthTab('register'));
+document.getElementById('closeAuthModal').addEventListener('click', closeAuth);
+document.getElementById('authModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAuth(); });
+
+document.getElementById('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const err = doLogin(
+    document.getElementById('loginEmail').value,
+    document.getElementById('loginPassword').value
+  );
+  const notice = document.getElementById('loginNotice');
+  if (err) { notice.textContent = err; notice.classList.add('error'); return; }
+  closeAuth();
+  const u = currentUser();
+  toast(`Welcome back, ${u.name.split(' ')[0]}!`);
+  renderAll();
+});
+
+document.getElementById('registerForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name     = document.getElementById('regName').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const role     = document.getElementById('regRole').value;
+  const claimId  = role === 'host' ? document.getElementById('regClaimListing').value : null;
+  const err = doRegister(name, email, password, role, claimId);
+  const notice = document.getElementById('registerNotice');
+  if (err) { notice.textContent = err; notice.classList.add('error'); return; }
+  closeAuth();
+  toast(role === 'host' ? `Welcome, ${name}! Your listing is ready.` : `Welcome, ${name}!`, 3500);
+  renderAll();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  Auth UI sync
+// ═══════════════════════════════════════════════════════════
+function updateAuthUI() {
+  const u = currentUser();
+  const hostBtn = document.getElementById('hostView');
+  const btnSignin = document.getElementById('btnSignin');
+  const pill = document.getElementById('userPill');
+  const menuHostMode = document.getElementById('menuHostMode');
+
+  if (u) {
+    btnSignin.classList.add('hidden');
+    pill.classList.remove('hidden');
+    document.getElementById('userAvatar').textContent = u.name.charAt(0).toUpperCase();
+    document.getElementById('userNameLabel').textContent = u.name.split(' ')[0];
+    menuHostMode.style.display = u.role === 'host' ? '' : 'none';
+    // Show host tab only if user is a host with at least one listing
+    const canHost = u.role === 'host' && myListings().length > 0;
+    hostBtn.style.display = canHost ? '' : 'none';
+  } else {
+    btnSignin.classList.remove('hidden');
+    pill.classList.add('hidden');
+    hostBtn.style.display = 'none';
+  }
+}
+
+// User pill click → toggle menu
+document.getElementById('userPill').addEventListener('click', () => {
+  document.getElementById('userMenu').classList.toggle('hidden');
+});
+document.getElementById('userPill').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') document.getElementById('userMenu').classList.toggle('hidden');
+});
+document.addEventListener('click', e => {
+  const pill = document.getElementById('userPill');
+  const menu = document.getElementById('userMenu');
+  if (!pill.contains(e.target) && !menu.contains(e.target)) menu.classList.add('hidden');
+});
+document.getElementById('btnSignin').addEventListener('click', () => openAuth('login'));
+document.getElementById('menuLogout').addEventListener('click', () => {
+  document.getElementById('userMenu').classList.add('hidden');
+  doLogout();
+  toast('Signed out.');
+  renderAll();
+});
+document.getElementById('menuHostMode').addEventListener('click', () => {
+  document.getElementById('userMenu').classList.add('hidden');
+  setMode('host');
+});
+
+// ═══════════════════════════════════════════════════════════
+//  View mode
+// ═══════════════════════════════════════════════════════════
+function setMode(mode, skipChecks) {
+  if (mode === 'host' && !skipChecks) {
+    const u = currentUser();
+    if (!u) { openAuth('login'); return; }
+    if (u.role !== 'host') { toast('Host access is only available to registered hosts.'); return; }
+    const mine = myListings();
+    if (!mine.length) { toast('You have no listings yet.'); return; }
+    if (!mine.find(l => l.id === currentListingId)) currentListingId = mine[0].id;
+  }
+  viewMode = mode;
+  document.body.classList.toggle('host-mode', mode === 'host');
+  document.getElementById('customerView').classList.toggle('active', mode === 'customer');
+  document.getElementById('hostView').classList.toggle('active', mode === 'host');
+  renderAll();
+}
+
+document.getElementById('customerView').addEventListener('click', () => setMode('customer'));
+document.getElementById('hostView').addEventListener('click', () => setMode('host'));
+
+// ═══════════════════════════════════════════════════════════
+//  Listing bar
+// ═══════════════════════════════════════════════════════════
+function renderListingBar() {
+  const bar = document.getElementById('listingBar');
+  const u = currentUser();
+  let listings;
+  if (viewMode === 'host') {
+    listings = myListings();
+  } else {
+    listings = app.listings.filter(l => l.published);
+  }
+  if (listings.length <= 1 && viewMode === 'customer') {
+    bar.classList.add('hidden');
+    return;
+  }
+  bar.classList.remove('hidden');
+  bar.innerHTML = listings.map(l =>
+    `<button class="listing-chip${l.id === currentListingId ? ' active' : ''}" data-lid="${l.id}" type="button">${l.title}${!l.published ? ' <em style="font-weight:400;font-style:normal;opacity:.7">(draft)</em>' : ''}</button>`
+  ).join('') + (viewMode === 'host' ? '<button class="listing-chip new-chip" id="newListingBtn" type="button">+ New listing</button>' : '');
+
+  bar.querySelectorAll('[data-lid]').forEach(btn => {
+    btn.addEventListener('click', () => { currentListingId = btn.dataset.lid; renderAll(); });
+  });
+  const nb = document.getElementById('newListingBtn');
+  if (nb) nb.addEventListener('click', () => document.getElementById('newListingModal').classList.remove('hidden'));
+}
+
+// New listing modal
+document.getElementById('closeNewListing').addEventListener('click', () => {
+  document.getElementById('newListingModal').classList.add('hidden');
+});
+document.getElementById('newListingModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('newListingModal').classList.add('hidden');
+});
+document.getElementById('newListingForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const u = currentUser();
+  if (!u) return;
+  const listing = blankListing(u.id, document.getElementById('nlTitle').value.trim());
+  listing.location    = document.getElementById('nlLocation').value.trim();
+  listing.description = document.getElementById('nlDescription').value.trim();
+  listing.basePrice   = Number(document.getElementById('nlBasePrice').value);
+  app.listings.push(listing);
+  currentListingId = listing.id;
+  saveApp();
+  document.getElementById('newListingModal').classList.add('hidden');
+  document.getElementById('newListingForm').reset();
+  toast(`"${listing.title}" created!`, 3000);
+  renderAll();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  Host tabs
+// ═══════════════════════════════════════════════════════════
+function setHostTab(id) {
+  activeTab = id;
+  document.querySelectorAll('.host-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  document.querySelectorAll('.host-tab-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${id}`));
+  const section = document.querySelector('.host-only.host-layout');
+  if (section) section.classList.toggle('logistics-mode', id === 'logistics');
+  if (id === 'logistics') renderLogistics();
+}
+document.querySelectorAll('.host-tab').forEach(btn => {
+  btn.addEventListener('click', () => setHostTab(btn.dataset.tab));
+});
+
+// ═══════════════════════════════════════════════════════════
+//  Gallery
+// ═══════════════════════════════════════════════════════════
+function showImage(idx) {
+  const imgs = activeImages();
+  if (!imgs.length) return;
+  currentImage = (idx + imgs.length) % imgs.length;
+  renderGallery();
+}
+function moveGallery(dir) { showImage(currentImage + dir); }
+
+function renderGallery() {
+  const gallery = document.getElementById('gallery');
+  const imgs = activeImages();
+  if (!imgs.length) {
+    gallery.innerHTML = `<div class="empty-gallery"><div><p style="font-size:1.5rem;margin:0 0 8px">📷</p><p>No active photos</p></div></div>`;
+    return;
+  }
+  currentImage = Math.min(currentImage, imgs.length - 1);
+  const main   = imgs[currentImage];
+  const maxT   = Math.min(4, imgs.length - 1);
+  const thumbs = Array.from({ length: maxT }, (_, i) => imgs[(currentImage + i + 1) % imgs.length]);
+
+  gallery.innerHTML = `
+    <div class="main-photo">
+      <img src="${main.src}" alt="House photo" draggable="false">
+      <button class="gallery-nav prev" type="button" data-step="-1" aria-label="Previous photo">&lt;</button>
+      <button class="gallery-nav next" type="button" data-step="1"  aria-label="Next photo">&gt;</button>
+      <span class="photo-count">${currentImage + 1} / ${imgs.length} photos</span>
+    </div>
+    <div class="thumb-grid">
+      ${thumbs.map((img, i) => `
+        <div class="thumb-tile">
+          <img src="${img.src}" alt="Thumbnail" draggable="false">
+          ${i === thumbs.length - 1 && imgs.length > 5 ? `<span class="thumb-more">+${imgs.length - 5}</span>` : ''}
+          <button type="button" data-img-id="${img.id}" aria-label="View ${img.name}"></button>
+        </div>`).join('')}
+    </div>`;
+
+  gallery.querySelectorAll('[data-step]').forEach(b =>
+    b.addEventListener('click', () => moveGallery(Number(b.dataset.step))));
+  gallery.querySelectorAll('[data-img-id]').forEach(b =>
+    b.addEventListener('click', () => {
+      const idx = imgs.findIndex(img => img.id === b.dataset.imgId);
+      if (idx >= 0) showImage(idx);
     }));
+}
 
-    const storageKey = "holiday-house-state-v1";
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+function enableGallerySwipe() {
+  const g = document.getElementById('gallery');
+  let sx = 0, sy = 0, pid = null, tracking = false;
+  g.addEventListener('pointerdown', e => {
+    if (activeImages().length < 2) return;
+    sx = e.clientX; sy = e.clientY; pid = e.pointerId; tracking = true;
+    g.classList.add('dragging');
+  });
+  g.addEventListener('pointerup', e => {
+    if (!tracking || e.pointerId !== pid) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    tracking = false; pid = null; g.classList.remove('dragging');
+    if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    moveGallery(dx < 0 ? 1 : -1);
+  });
+  g.addEventListener('pointercancel', () => { tracking = false; pid = null; g.classList.remove('dragging'); });
+  g.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); moveGallery(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); moveGallery(1); }
+  });
+}
 
-    const state = loadState();
-    let customerMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    let hostMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    let currentImage = 0;
+// ═══════════════════════════════════════════════════════════
+//  Calendar
+// ═══════════════════════════════════════════════════════════
+function renderCalendar(targetId, labelId, month, mode) {
+  document.getElementById(labelId).textContent = monthLabel(month);
+  const first = new Date(month.getFullYear(), month.getMonth(), 1);
+  const last  = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+  const offset = (first.getDay() + 6) % 7;
+  const checkIn  = parseDate(document.getElementById('checkIn').value);
+  const checkOut = parseDate(document.getElementById('checkOut').value);
+  const selStart = mode === 'host' ? parseDate(document.getElementById('hostStart').value) : checkIn;
+  const selEnd   = mode === 'host' ? parseDate(document.getElementById('hostEnd').value)   : checkOut;
 
-    const els = {
-      body: document.body,
-      gallery: document.getElementById("gallery"),
-      imageList: document.getElementById("imageList"),
-      customerView: document.getElementById("customerView"),
-      hostView: document.getElementById("hostView"),
-      customerCalendar: document.getElementById("customerCalendar"),
-      hostCalendar: document.getElementById("hostCalendar"),
-      customerMonthLabel: document.getElementById("customerMonthLabel"),
-      hostMonthLabel: document.getElementById("hostMonthLabel"),
-      customerPrev: document.getElementById("customerPrev"),
-      customerNext: document.getElementById("customerNext"),
-      hostPrev: document.getElementById("hostPrev"),
-      hostNext: document.getElementById("hostNext"),
-      checkIn: document.getElementById("checkIn"),
-      checkOut: document.getElementById("checkOut"),
-      bookingSummary: document.getElementById("bookingSummary"),
-      bookingNotice: document.getElementById("bookingNotice"),
-      bookingForm: document.getElementById("bookingForm"),
-      fromPrice: document.getElementById("fromPrice"),
-      availabilityForm: document.getElementById("availabilityForm"),
-      hostStart: document.getElementById("hostStart"),
-      hostEnd: document.getElementById("hostEnd"),
-      hostStatus: document.getElementById("hostStatus"),
-      hostPrice: document.getElementById("hostPrice"),
-      hostNotice: document.getElementById("hostNotice"),
-      resetCalendar: document.getElementById("resetCalendar"),
-      imageUpload: document.getElementById("imageUpload"),
-      resetImages: document.getElementById("resetImages")
+  let html = `<div class="weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="days-grid">`;
+  for (let i = 0; i < offset; i++) html += `<button class="day empty" type="button" tabindex="-1"></button>`;
+  for (let d = 1; d <= last.getDate(); d++) {
+    const date = new Date(month.getFullYear(), month.getMonth(), d);
+    const key = fmtDate(date);
+    const info = dateInfo(date);
+    const isPast = date < today;
+    const isBlocked = info.status === 'blocked';
+    const isSelected = (selStart && fmtDate(selStart) === key) || (selEnd && fmtDate(selEnd) === key);
+    const isInRange  = selStart && selEnd && date > selStart && date < selEnd;
+    const cls = ['day', isPast ? 'past' : info.status, isSelected ? 'selected' : '', isInRange ? 'in-range' : ''].filter(Boolean).join(' ');
+    html += `<button class="${cls}" type="button" data-date="${key}" ${mode === 'customer' && (isPast || isBlocked) ? 'aria-disabled="true"' : ''}>
+      <span class="day-number">${d}</span>
+      <span class="day-price">EUR ${info.price}</span>
+      <span class="day-status">${isPast ? 'Past' : isBlocked ? 'Blocked' : 'Free'}</span>
+    </button>`;
+  }
+  html += `</div>`;
+  document.getElementById(targetId).innerHTML = html;
+  document.getElementById(targetId).querySelectorAll('[data-date]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = parseDate(btn.dataset.date);
+      mode === 'customer' ? pickCustomerDate(d) : pickHostDate(d);
+    });
+  });
+}
+
+function pickCustomerDate(date) {
+  const info = dateInfo(date);
+  if (date < today || info.status === 'blocked') return;
+  const ci = parseDate(document.getElementById('checkIn').value);
+  const co = parseDate(document.getElementById('checkOut').value);
+  if (!ci || co || date <= ci) {
+    document.getElementById('checkIn').value = fmtDate(date);
+    document.getElementById('checkOut').value = '';
+  } else {
+    document.getElementById('checkOut').value = fmtDate(date);
+  }
+  renderCalendars(); updateBookingSummary();
+}
+
+function pickHostDate(date) {
+  const s = parseDate(document.getElementById('hostStart').value);
+  const e = parseDate(document.getElementById('hostEnd').value);
+  if (!s || e || date < s) {
+    document.getElementById('hostStart').value = fmtDate(date);
+    document.getElementById('hostEnd').value   = fmtDate(date);
+  } else {
+    document.getElementById('hostEnd').value = fmtDate(date);
+  }
+  const info = dateInfo(date);
+  document.getElementById('hostStatus').value = info.status;
+  document.getElementById('hostPrice').value  = info.price;
+  renderCalendars();
+}
+
+function eachDate(start, end, cb) {
+  for (let d = new Date(start); d <= end; d = addDays(d, 1)) cb(new Date(d));
+}
+function nightsBetween(s, e) { return Math.round((e - s) / 86400000); }
+
+function bookingDetails() {
+  const s = parseDate(document.getElementById('checkIn').value);
+  const e = parseDate(document.getElementById('checkOut').value);
+  if (!s || !e || e <= s) return { valid: false, nights: 0, total: 0, blocked: false };
+  let total = 0, blocked = false;
+  eachDate(s, addDays(e, -1), d => {
+    const info = dateInfo(d);
+    if (d < today || info.status === 'blocked') blocked = true;
+    total += info.price;
+  });
+  return { valid: !blocked, nights: nightsBetween(s, e), total, blocked };
+}
+
+function updateBookingSummary() {
+  const det = bookingDetails();
+  document.getElementById('bookingSummary').innerHTML = `
+    <div class="summary-row"><span>Nights</span><strong>${det.nights}</strong></div>
+    <div class="summary-row"><span>Total</span><strong>EUR ${det.total}</strong></div>`;
+  if (det.nights) {
+    const n = document.getElementById('bookingNotice');
+    n.textContent = det.blocked ? 'Selected dates include unavailable nights.' : '';
+    n.classList.toggle('error', det.blocked);
+  }
+}
+
+function updateFromPrice() {
+  const prices = [];
+  for (let i = 0; i < 90; i++) {
+    const d = addDays(today, i);
+    const info = dateInfo(d);
+    if (info.status === 'free') prices.push(info.price);
+  }
+  document.getElementById('fromPrice').textContent = `EUR ${prices.length ? Math.min(...prices) : 0}`;
+}
+
+function renderCalendars() {
+  renderCalendar('customerCalendar', 'customerMonthLabel', customerMonth, 'customer');
+  renderCalendar('hostCalendar',     'hostMonthLabel',     hostMonth,     'host');
+  updateFromPrice();
+}
+
+// calendar nav
+document.getElementById('customerPrev').addEventListener('click', () => { customerMonth = new Date(customerMonth.getFullYear(), customerMonth.getMonth()-1, 1); renderCalendars(); });
+document.getElementById('customerNext').addEventListener('click', () => { customerMonth = new Date(customerMonth.getFullYear(), customerMonth.getMonth()+1, 1); renderCalendars(); });
+document.getElementById('hostPrev').addEventListener('click',     () => { hostMonth = new Date(hostMonth.getFullYear(), hostMonth.getMonth()-1, 1); renderCalendars(); });
+document.getElementById('hostNext').addEventListener('click',     () => { hostMonth = new Date(hostMonth.getFullYear(), hostMonth.getMonth()+1, 1); renderCalendars(); });
+document.getElementById('checkIn').addEventListener('change',  () => { renderCalendars(); updateBookingSummary(); });
+document.getElementById('checkOut').addEventListener('change', () => { renderCalendars(); updateBookingSummary(); });
+document.getElementById('hostStart').addEventListener('change', renderCalendars);
+document.getElementById('hostEnd').addEventListener('change',   renderCalendars);
+
+// booking submit
+document.getElementById('bookingForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const det = bookingDetails();
+  const n = document.getElementById('bookingNotice');
+  if (!det.valid || !det.nights) {
+    n.textContent = 'Choose available check-in and check-out dates.'; n.classList.add('error'); return;
+  }
+  n.textContent = `Request sent for ${det.nights} nights — EUR ${det.total}.`; n.classList.remove('error');
+  e.target.reset(); updateBookingSummary(); renderCalendars();
+});
+
+// availability form
+document.getElementById('availabilityForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const listing = currentListing();
+  if (!listing) return;
+  const s = parseDate(document.getElementById('hostStart').value);
+  const en = parseDate(document.getElementById('hostEnd').value);
+  const price = Number(document.getElementById('hostPrice').value);
+  const n = document.getElementById('hostNotice');
+  if (!s || !en || en < s || isNaN(price) || price < 0) {
+    n.textContent = 'Check the selected dates and price.'; n.classList.add('error'); return;
+  }
+  eachDate(s, en, d => {
+    listing.dates[fmtDate(d)] = { status: document.getElementById('hostStatus').value, price };
+  });
+  saveApp();
+  n.textContent = 'Updated.'; n.classList.remove('error');
+  renderCalendars(); updateBookingSummary();
+});
+
+document.getElementById('resetCalendar').addEventListener('click', () => {
+  const listing = currentListing();
+  if (!listing) return;
+  listing.dates = {};
+  saveApp();
+  document.getElementById('hostNotice').textContent = 'Dates reset.';
+  document.getElementById('hostNotice').classList.remove('error');
+  renderCalendars(); updateBookingSummary();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  Image manager
+// ═══════════════════════════════════════════════════════════
+function renderImageManager() {
+  const listing = currentListing();
+  if (!listing) return;
+  const list = document.getElementById('imageList');
+  list.innerHTML = listing.images.map((img, i) => `
+    <div class="image-item">
+      <img src="${img.src}" alt="${img.name}">
+      <div>
+        <div class="image-title">${img.name}</div>
+        <div class="image-controls">
+          <button class="small-button${img.active !== false ? ' active' : ''}" type="button" data-action="toggle" data-i="${i}">${img.active !== false ? 'Visible' : 'Hidden'}</button>
+          <button class="small-button" type="button" data-action="cover"  data-i="${i}">Cover</button>
+          <button class="small-button" type="button" data-action="up"     data-i="${i}">Up</button>
+          <button class="small-button" type="button" data-action="down"   data-i="${i}">Down</button>
+          <button class="small-button" type="button" data-action="remove" data-i="${i}">Remove</button>
+        </div>
+      </div>
+    </div>`).join('');
+  list.querySelectorAll('[data-action]').forEach(btn =>
+    btn.addEventListener('click', () => updateImage(btn.dataset.action, Number(btn.dataset.i))));
+}
+
+function updateImage(action, i) {
+  const listing = currentListing();
+  if (!listing) return;
+  const img = listing.images[i];
+  if (!img) return;
+  if (action === 'toggle') img.active = img.active === false;
+  if (action === 'cover' && i > 0) { listing.images.splice(i, 1); listing.images.unshift(img); currentImage = 0; }
+  if (action === 'up'   && i > 0) [listing.images[i-1], listing.images[i]] = [img, listing.images[i-1]];
+  if (action === 'down' && i < listing.images.length-1) [listing.images[i+1], listing.images[i]] = [img, listing.images[i+1]];
+  if (action === 'remove') { listing.images.splice(i, 1); currentImage = 0; }
+  saveApp(); renderGallery(); renderImageManager();
+}
+
+document.getElementById('imageUpload').addEventListener('change', e => {
+  const listing = currentListing();
+  if (!listing) return;
+  Array.from(e.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      listing.images.push({ id: `upload-${makeId()}`, name: file.name, src: reader.result, active: true });
+      saveApp(); renderGallery(); renderImageManager();
     };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+});
 
-    function loadState() {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          return {
-            images: Array.isArray(parsed.images) && parsed.images.length ? parsed.images : defaultImages,
-            dates: parsed.dates || {}
-          };
-        } catch (error) {
-          return { images: defaultImages, dates: {} };
-        }
-      }
-      return { images: defaultImages, dates: {} };
-    }
+document.getElementById('resetImages').addEventListener('click', () => {
+  const listing = currentListing();
+  if (!listing) return;
+  listing.images = DEFAULT_IMAGES.map(img => ({ ...img }));
+  currentImage = 0; saveApp(); renderGallery(); renderImageManager();
+});
 
-    function saveState() {
-      localStorage.setItem(storageKey, JSON.stringify(state));
-    }
+// ═══════════════════════════════════════════════════════════
+//  Amenities
+// ═══════════════════════════════════════════════════════════
+function renderAmenitiesEditor() {
+  const listing = currentListing();
+  if (!listing) return;
+  const editor = document.getElementById('amenitiesEditor');
+  editor.innerHTML = AMENITY_DEFS.map(def => `
+    <button class="amenity-chip${listing.amenities[def.id] ? ' active' : ''}" type="button" data-amenity="${def.id}">
+      <span class="amenity-icon">${def.icon}</span>
+      <span class="amenity-label">${def.label}</span>
+    </button>`).join('');
+  editor.querySelectorAll('[data-amenity]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      listing.amenities[chip.dataset.amenity] = !listing.amenities[chip.dataset.amenity];
+      saveApp(); renderAmenitiesEditor(); renderAmenitiesDisplay();
+    });
+  });
+  renderCustomAmenitiesList();
+}
 
-    function formatDate(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    }
+function renderCustomAmenitiesList() {
+  const listing = currentListing();
+  if (!listing) return;
+  const container = document.getElementById('customAmenitiesList');
+  container.innerHTML = (listing.customAmenities || []).map((label, i) => `
+    <div class="custom-tag">${label}
+      <button type="button" data-ci="${i}" aria-label="Remove">×</button>
+    </div>`).join('');
+  container.querySelectorAll('[data-ci]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      listing.customAmenities.splice(Number(btn.dataset.ci), 1);
+      saveApp(); renderCustomAmenitiesList(); renderAmenitiesDisplay();
+    });
+  });
+}
 
-    function parseDate(value) {
-      if (!value) return null;
-      const [year, month, day] = value.split("-").map(Number);
-      return new Date(year, month - 1, day);
-    }
+document.getElementById('addCustomAmenity').addEventListener('click', () => {
+  const input = document.getElementById('customAmenityInput');
+  const label = input.value.trim();
+  if (!label) return;
+  const listing = currentListing();
+  if (!listing) return;
+  if (!listing.customAmenities) listing.customAmenities = [];
+  listing.customAmenities.push(label);
+  input.value = '';
+  saveApp(); renderCustomAmenitiesList(); renderAmenitiesDisplay();
+});
 
-    function addDays(date, days) {
-      const next = new Date(date);
-      next.setDate(next.getDate() + days);
-      return next;
-    }
+function renderAmenitiesDisplay() {
+  const listing = currentListing();
+  const grid    = document.getElementById('amenitiesDisplayGrid');
+  const section = document.getElementById('amenitiesSection');
+  if (!listing) { grid.innerHTML = ''; section.style.display = 'none'; return; }
+  const standard = AMENITY_DEFS.filter(d => listing.amenities[d.id])
+    .map(d => `<div class="amenity-item"><span class="aicon">${d.icon}</span><span>${d.label}</span></div>`);
+  const custom = (listing.customAmenities || [])
+    .map(l => `<div class="amenity-item"><span class="aicon">✔</span><span>${l}</span></div>`);
+  const all = [...standard, ...custom];
+  section.style.display = all.length ? '' : 'none';
+  grid.innerHTML = all.join('');
+}
 
-    function monthName(date) {
-      return date.toLocaleDateString("en", { month: "long", year: "numeric" });
-    }
+// ═══════════════════════════════════════════════════════════
+//  Listing details form
+// ═══════════════════════════════════════════════════════════
+function populateDetailsForm() {
+  const l = currentListing();
+  if (!l) return;
+  document.getElementById('detailTitle').value       = l.title;
+  document.getElementById('detailLocation').value    = l.location || '';
+  document.getElementById('detailDescription').value = l.description || '';
+  document.getElementById('detailBasePrice').value   = l.basePrice || 120;
+  document.getElementById('detailPublished').checked = l.published !== false;
+}
 
-    function getDefaultPrice(date) {
-      const day = date.getDay();
-      return day === 5 || day === 6 ? 145 : 120;
-    }
+document.getElementById('listingDetailsForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const l = currentListing();
+  if (!l) return;
+  l.title       = document.getElementById('detailTitle').value.trim();
+  l.location    = document.getElementById('detailLocation').value.trim();
+  l.description = document.getElementById('detailDescription').value.trim();
+  l.basePrice   = Number(document.getElementById('detailBasePrice').value);
+  l.published   = document.getElementById('detailPublished').checked;
+  saveApp();
+  document.getElementById('brandTitle').textContent    = l.title;
+  document.getElementById('brandSubtitle').textContent = l.location || 'Gallery, availability and booking requests';
+  const n = document.getElementById('detailsNotice');
+  n.textContent = 'Saved.'; n.classList.remove('error');
+  renderListingBar();
+  setTimeout(() => { n.textContent = ''; }, 2200);
+});
 
-    function getDateInfo(date) {
-      const key = formatDate(date);
-      const saved = state.dates[key] || {};
-      return {
-        status: saved.status || "free",
-        price: Number(saved.price || getDefaultPrice(date))
-      };
-    }
+// ═══════════════════════════════════════════════════════════
+//  Master render
+// ═══════════════════════════════════════════════════════════
+function renderAll() {
+  const l = currentListing();
+  document.getElementById('brandTitle').textContent    = l?.title || 'Holiday House';
+  document.getElementById('brandSubtitle').textContent = l?.location || 'Gallery, availability and booking requests';
+  updateAuthUI();
+  renderListingBar();
+  renderGallery();
+  renderCalendars();
+  updateBookingSummary();
+  renderImageManager();
+  renderAmenitiesEditor();
+  renderAmenitiesDisplay();
+  populateDetailsForm();
+}
 
-    function activeImages() {
-      return state.images.filter((image) => image.active !== false);
-    }
+// ═══════════════════════════════════════════════════════════
+//  Logistics helpers
+// ═══════════════════════════════════════════════════════════
+const ITEM_ICONS = [
+  '🛏️','🛁','🚿','🪥','🧼','🧴','🪒','🩲','👕','🧤','🧣','🧺',
+  '🧻','🪣','🧹','🧽','🫧','🪠','🧯','☕','🍳','🍽️','🥂','🫙',
+  '💊','🌡️','🩹','📦','🔑','🏠','✅','⭐','🛒','🪑','🌿','🪴'
+];
 
-    function galleryThumbs(images) {
-      const maxThumbs = Math.min(4, images.length - 1);
-      return Array.from({ length: maxThumbs }, (_, index) => images[(currentImage + index + 1) % images.length]);
-    }
+const STAGE_META = {
+  storage: { label: '🟢 Storage', next: 'in-use',  nextLabel: '→ In Use' },
+  'in-use':{ label: '🟡 In Use',  next: 'dirty',   nextLabel: '→ Dirty'  },
+  dirty:   { label: '🔴 Dirty',   next: 'storage', nextLabel: '→ Cleaned'}
+};
 
-    function showGalleryImage(nextIndex) {
-      const images = activeImages();
-      if (!images.length) return;
-      currentImage = (nextIndex + images.length) % images.length;
-      renderGallery();
-    }
+function ensureLogistics(listing) {
+  if (!listing.logistics) {
+    listing.logistics = { cyclicItems: [], consumables: [], alarms: [], visitCount: 0 };
+  }
+}
 
-    function moveGallery(direction) {
-      showGalleryImage(currentImage + direction);
-    }
+let activeLogTab = 'cyclic';
+let dnd = { setId: null, itemId: null };
 
-    function enableGallerySwipe() {
-      let startX = 0;
-      let startY = 0;
-      let pointerId = null;
-      let tracking = false;
+// icon/photo state for modals
+let ciIcon = '🛏️', ciPhoto = null;
+let conIcon = '🧻', conPhoto = null;
+let ciContents = [{ name: 'Bed sheet', qty: 2 }, { name: 'Towel', qty: 2 }];
 
-      els.gallery.addEventListener("pointerdown", (event) => {
-        if (activeImages().length < 2) return;
-        startX = event.clientX;
-        startY = event.clientY;
-        pointerId = event.pointerId;
-        tracking = true;
-        els.gallery.classList.add("dragging");
-      });
+// ── logistics sub-tab switching ──
+function setLogTab(id) {
+  activeLogTab = id;
+  document.querySelectorAll('.log-tab').forEach(b => b.classList.toggle('active', b.dataset.ltab === id));
+  document.querySelectorAll('.log-tab-panel').forEach(p => p.classList.toggle('active', p.id === `lpanel-${id}`));
+}
+document.querySelectorAll('.log-tab').forEach(b => b.addEventListener('click', () => setLogTab(b.dataset.ltab)));
 
-      els.gallery.addEventListener("pointerup", (event) => {
-        if (!tracking || event.pointerId !== pointerId) return;
-        const deltaX = event.clientX - startX;
-        const deltaY = event.clientY - startY;
-        tracking = false;
-        pointerId = null;
-        els.gallery.classList.remove("dragging");
+// ── visit recording ──
+document.getElementById('recordVisitBtn').addEventListener('click', () => {
+  const listing = currentListing();
+  if (!listing) return;
+  ensureLogistics(listing);
+  listing.logistics.visitCount++;
+  listing.logistics.consumables.forEach(c => {
+    if (c.type === 'visit') c.visitsSinceRefill = (c.visitsSinceRefill || 0) + 1;
+  });
+  saveApp();
+  renderLogistics();
+  checkAlarms();
+  toast('Check-out recorded.');
+});
 
-        if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
-        moveGallery(deltaX < 0 ? 1 : -1);
-      });
+// ═══════════════════════════════════════════════════════════
+//  Cyclic items
+// ═══════════════════════════════════════════════════════════
+function renderCyclicSection() {
+  const listing = currentListing();
+  if (!listing) return;
+  ensureLogistics(listing);
+  const items = listing.logistics.cyclicItems;
+  const container = document.getElementById('cyclicItemsList');
+  if (!items.length) {
+    container.innerHTML = `<div class="cyclic-empty">No cyclic item types yet.<br>Add laundry sets, towel bundles, etc.</div>`;
+    return;
+  }
+  container.innerHTML = items.map(item => renderCyclicCardHTML(item)).join('');
 
-      els.gallery.addEventListener("pointercancel", () => {
-        tracking = false;
-        pointerId = null;
-        els.gallery.classList.remove("dragging");
-      });
+  container.querySelectorAll('[data-action]').forEach(btn => {
+    const { action, itemId, setId, from, to } = btn.dataset;
+    if (action === 'add-set')   btn.addEventListener('click', () => addSetsToItem(itemId, 1));
+    if (action === 'del-cyclic')btn.addEventListener('click', () => deleteCyclicItem(itemId));
+    if (action === 'move-all')  btn.addEventListener('click', () => moveAllSets(itemId, from, to));
+    if (action === 'del-set')   btn.addEventListener('click', () => deleteSet(itemId, setId));
+  });
+}
 
-      els.gallery.addEventListener("keydown", (event) => {
-        if (event.key === "ArrowLeft") {
-          event.preventDefault();
-          moveGallery(-1);
-        }
-        if (event.key === "ArrowRight") {
-          event.preventDefault();
-          moveGallery(1);
-        }
-      });
-    }
+function renderCyclicCardHTML(item) {
+  const thumbHTML = item.photo
+    ? `<img src="${item.photo}" alt="">`
+    : `<span>${item.icon || '📦'}</span>`;
+  const contentsStr = (item.contents || []).map(c => `${c.qty}× ${c.name}`).join(', ');
 
-    function renderGallery() {
-      const images = activeImages();
-      if (!images.length) {
-        els.gallery.innerHTML = `<div class="empty-gallery">No active photos</div>`;
-        return;
-      }
-
-      currentImage = Math.min(currentImage, images.length - 1);
-      const main = images[currentImage];
-      const thumbs = galleryThumbs(images);
-
-      els.gallery.innerHTML = `
-        <div class="main-photo">
-          <img src="${main.src}" alt="House photo" draggable="false">
-          <button class="gallery-nav prev" type="button" data-gallery-step="-1" aria-label="Previous photo">&lt;</button>
-          <button class="gallery-nav next" type="button" data-gallery-step="1" aria-label="Next photo">&gt;</button>
-          <span class="photo-count">${currentImage + 1} / ${images.length} photos</span>
-        </div>
-        <div class="thumb-grid">
-          ${thumbs.map((image, index) => `
-            <div class="thumb-tile">
-              <img src="${image.src}" alt="House photo thumbnail" draggable="false">
-              ${index === thumbs.length - 1 && images.length > 5 ? `<span class="thumb-more">+${images.length - 5}</span>` : ""}
-              <button type="button" data-image-id="${image.id}" aria-label="Show photo ${image.name}"></button>
-            </div>
-          `).join("")}
-        </div>
-      `;
-
-      els.gallery.querySelectorAll("[data-gallery-step]").forEach((button) => {
-        button.addEventListener("click", () => {
-          moveGallery(Number(button.dataset.galleryStep));
-        });
-      });
-
-      els.gallery.querySelectorAll("[data-image-id]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const nextIndex = images.findIndex((image) => image.id === button.dataset.imageId);
-          if (nextIndex >= 0) {
-            showGalleryImage(nextIndex);
-          }
-        });
-      });
-    }
-
-    function renderCalendar(target, label, month, mode) {
-      label.textContent = monthName(month);
-      const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
-      const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
-      const weekdayOffset = (firstDay.getDay() + 6) % 7;
-      const checkIn = parseDate(els.checkIn.value);
-      const checkOut = parseDate(els.checkOut.value);
-      const selectedStart = mode === "host" ? parseDate(els.hostStart.value) : checkIn;
-      const selectedEnd = mode === "host" ? parseDate(els.hostEnd.value) : checkOut;
-
-      let html = `
-        <div class="weekdays">
-          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-        </div>
-        <div class="days-grid">
-      `;
-
-      for (let i = 0; i < weekdayOffset; i += 1) {
-        html += `<button class="day empty" type="button" tabindex="-1"></button>`;
-      }
-
-      for (let day = 1; day <= lastDay.getDate(); day += 1) {
-        const date = new Date(month.getFullYear(), month.getMonth(), day);
-        const key = formatDate(date);
-        const info = getDateInfo(date);
-        const isPast = date < today;
-        const isBlocked = info.status === "blocked";
-        const isSelected = selectedStart && formatDate(selectedStart) === key || selectedEnd && formatDate(selectedEnd) === key;
-        const isInRange = selectedStart && selectedEnd && date > selectedStart && date < selectedEnd;
-        const classes = [
-          "day",
-          isPast ? "past" : info.status,
-          isSelected ? "selected" : "",
-          isInRange ? "in-range" : ""
-        ].filter(Boolean).join(" ");
-        const status = isPast ? "Past" : isBlocked ? "Blocked" : "Free";
-
-        html += `
-          <button class="${classes}" type="button" data-date="${key}" ${mode === "customer" && (isPast || isBlocked) ? "aria-disabled=\"true\"" : ""}>
-            <span class="day-number">${day}</span>
-            <span class="day-price">EUR ${info.price}</span>
-            <span class="day-status">${status}</span>
+  const cols = Object.entries(STAGE_META).map(([stage, meta]) => {
+    const sets = item.sets.filter(s => s.stage === stage);
+    const setsHTML = sets.map((s, i) => `
+      <div class="set-block" draggable="true" data-set-id="${s.id}" data-item-id="${item.id}">
+        <div class="set-thumb">${item.photo ? `<img src="${item.photo}" alt="">` : item.icon || '📦'}</div>
+        <span class="set-label">Set ${i + 1}</span>
+        <button type="button" data-action="del-set" data-item-id="${item.id}" data-set-id="${s.id}"
+          style="background:transparent;color:var(--muted);font-size:.9rem;padding:0 2px;line-height:1">×</button>
+      </div>`).join('');
+    return `
+      <div class="kanban-col" data-stage="${stage}" data-item-id="${item.id}">
+        <div class="kanban-col-hd">
+          <span class="kanban-col-title">${meta.label} (${sets.length})</span>
+          <button class="small-button" type="button"
+            data-action="move-all" data-item-id="${item.id}" data-from="${stage}" data-to="${meta.next}">
+            ${meta.nextLabel}
           </button>
-        `;
-      }
+        </div>
+        <div class="kanban-body" id="kb-${stage}-${item.id}">${setsHTML}</div>
+      </div>`;
+  }).join('');
 
-      html += `</div>`;
-      target.innerHTML = html;
+  return `
+    <div class="cyclic-card" data-card-id="${item.id}">
+      <div class="cyclic-card-hd">
+        <div class="item-thumb">${thumbHTML}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800">${item.name}</div>
+          <div style="font-size:.78rem;color:var(--muted)">${contentsStr}</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <button class="small-button" type="button" data-action="add-set" data-item-id="${item.id}">+ Set</button>
+          <button class="small-button" type="button" data-action="del-cyclic" data-item-id="${item.id}"
+            style="color:#a64632">Remove</button>
+        </div>
+      </div>
+      <div class="kanban-board">${cols}</div>
+    </div>`;
+}
 
-      target.querySelectorAll("[data-date]").forEach((dayButton) => {
-        dayButton.addEventListener("click", () => {
-          const date = parseDate(dayButton.dataset.date);
-          if (mode === "customer") {
-            chooseCustomerDate(date);
-          } else {
-            chooseHostDate(date);
-          }
-        });
-      });
-    }
+function addSetsToItem(itemId, count) {
+  const listing = currentListing();
+  if (!listing) return;
+  const item = listing.logistics.cyclicItems.find(i => i.id === itemId);
+  if (!item) return;
+  for (let n = 0; n < count; n++) item.sets.push({ id: `set-${makeId()}`, stage: 'storage' });
+  saveApp(); renderCyclicSection(); checkAlarms();
+}
 
-    function chooseCustomerDate(date) {
-      const info = getDateInfo(date);
-      if (date < today || info.status === "blocked") return;
+function moveAllSets(itemId, from, to) {
+  const listing = currentListing();
+  if (!listing) return;
+  const item = listing.logistics.cyclicItems.find(i => i.id === itemId);
+  if (!item) return;
+  item.sets.filter(s => s.stage === from).forEach(s => { s.stage = to; });
+  saveApp(); renderCyclicSection(); checkAlarms();
+}
 
-      const checkIn = parseDate(els.checkIn.value);
-      const checkOut = parseDate(els.checkOut.value);
-      if (!checkIn || checkOut || date <= checkIn) {
-        els.checkIn.value = formatDate(date);
-        els.checkOut.value = "";
-      } else {
-        els.checkOut.value = formatDate(date);
-      }
-      renderAllCalendars();
-      updateBookingSummary();
-    }
+function moveSet(itemId, setId, newStage) {
+  const listing = currentListing();
+  if (!listing) return;
+  const item = listing.logistics.cyclicItems.find(i => i.id === itemId);
+  if (!item) return;
+  const s = item.sets.find(s => s.id === setId);
+  if (s) { s.stage = newStage; saveApp(); renderCyclicSection(); checkAlarms(); }
+}
 
-    function chooseHostDate(date) {
-      const start = parseDate(els.hostStart.value);
-      const end = parseDate(els.hostEnd.value);
-      if (!start || end || date < start) {
-        els.hostStart.value = formatDate(date);
-        els.hostEnd.value = formatDate(date);
-      } else {
-        els.hostEnd.value = formatDate(date);
-      }
+function deleteSet(itemId, setId) {
+  const listing = currentListing();
+  if (!listing) return;
+  const item = listing.logistics.cyclicItems.find(i => i.id === itemId);
+  if (!item) return;
+  item.sets = item.sets.filter(s => s.id !== setId);
+  saveApp(); renderCyclicSection(); checkAlarms();
+}
 
-      const info = getDateInfo(date);
-      els.hostStatus.value = info.status;
-      els.hostPrice.value = info.price;
-      renderAllCalendars();
-    }
+function deleteCyclicItem(itemId) {
+  const listing = currentListing();
+  if (!listing) return;
+  listing.logistics.cyclicItems = listing.logistics.cyclicItems.filter(i => i.id !== itemId);
+  // remove alarms referencing this item
+  listing.logistics.alarms = listing.logistics.alarms.filter(a => !(a.type === 'cyclic' && a.itemId === itemId));
+  saveApp(); renderCyclicSection(); renderAlarmsSection();
+}
 
-    function eachDate(start, end, callback) {
-      for (let date = new Date(start); date <= end; date = addDays(date, 1)) {
-        callback(new Date(date));
-      }
-    }
+// ── drag & drop (document-level, re-render safe) ──
+document.addEventListener('dragstart', e => {
+  const block = e.target.closest('[data-set-id]');
+  if (!block) return;
+  dnd.setId  = block.dataset.setId;
+  dnd.itemId = block.dataset.itemId;
+  e.dataTransfer.effectAllowed = 'move';
+  block.classList.add('dragging');
+});
+document.addEventListener('dragend', e => {
+  const block = e.target.closest('[data-set-id]');
+  if (block) block.classList.remove('dragging');
+  document.querySelectorAll('.kanban-body').forEach(c => c.classList.remove('drag-over'));
+});
+document.addEventListener('dragover', e => {
+  const col = e.target.closest('.kanban-body');
+  if (!col) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.kanban-body').forEach(c => c.classList.remove('drag-over'));
+  col.classList.add('drag-over');
+});
+document.addEventListener('dragleave', e => {
+  if (!e.relatedTarget || !e.relatedTarget.closest('.kanban-body')) {
+    document.querySelectorAll('.kanban-body').forEach(c => c.classList.remove('drag-over'));
+  }
+});
+document.addEventListener('drop', e => {
+  const col = e.target.closest('.kanban-body');
+  if (!col || !dnd.setId) return;
+  e.preventDefault();
+  col.classList.remove('drag-over');
+  const kanbanCol = col.closest('.kanban-col');
+  if (!kanbanCol) return;
+  const targetStage  = kanbanCol.dataset.stage;
+  const targetItemId = kanbanCol.dataset.itemId;
+  if (targetItemId !== dnd.itemId) return;
+  moveSet(dnd.itemId, dnd.setId, targetStage);
+  dnd = { setId: null, itemId: null };
+});
 
-    function nightsBetween(start, end) {
-      return Math.round((end - start) / 86400000);
-    }
+// ── Add cyclic item modal ──
+function buildIconGrid(gridId, current, onSelect) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.innerHTML = ITEM_ICONS.map(ic =>
+    `<button type="button" class="icon-opt${ic === current ? ' selected' : ''}" data-ico="${ic}">${ic}</button>`
+  ).join('');
+  grid.querySelectorAll('[data-ico]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      grid.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      onSelect(btn.dataset.ico);
+    });
+  });
+}
 
-    function bookingDetails() {
-      const start = parseDate(els.checkIn.value);
-      const end = parseDate(els.checkOut.value);
-      if (!start || !end || end <= start) {
-        return { valid: false, nights: 0, total: 0, blocked: false };
-      }
+function renderCiContentsRows() {
+  const container = document.getElementById('ciContentsRows');
+  container.innerHTML = ciContents.map((c, i) => `
+    <div class="contents-row">
+      <input type="text"   class="ci-cname" data-ri="${i}" value="${c.name}" placeholder="Item name">
+      <input type="number" class="ci-cqty"  data-ri="${i}" value="${c.qty}"  min="1">
+      <button type="button" class="rm-row-btn" data-rmi="${i}">×</button>
+    </div>`).join('');
+  container.querySelectorAll('.ci-cname').forEach(inp =>
+    inp.addEventListener('input', () => { ciContents[inp.dataset.ri].name = inp.value; }));
+  container.querySelectorAll('.ci-cqty').forEach(inp =>
+    inp.addEventListener('change', () => { ciContents[inp.dataset.ri].qty = Number(inp.value); }));
+  container.querySelectorAll('[data-rmi]').forEach(btn =>
+    btn.addEventListener('click', () => {
+      ciContents.splice(Number(btn.dataset.rmi), 1);
+      renderCiContentsRows();
+    }));
+}
 
-      let total = 0;
-      let blocked = false;
-      eachDate(start, addDays(end, -1), (date) => {
-        const info = getDateInfo(date);
-        if (date < today || info.status === "blocked") blocked = true;
-        total += info.price;
-      });
+document.getElementById('addCyclicBtn').addEventListener('click', () => {
+  ciIcon = '🛏️'; ciPhoto = null; ciContents = [{ name: 'Bed sheet', qty: 2 }, { name: 'Towel', qty: 2 }];
+  document.getElementById('ciName').value = '';
+  document.getElementById('ciInitSets').value = '3';
+  document.getElementById('ciPhotoPreview').innerHTML = '';
+  document.getElementById('ciNotice').textContent = '';
+  buildIconGrid('cyclicIconGrid', ciIcon, v => { ciIcon = v; ciPhoto = null; document.getElementById('ciPhotoPreview').innerHTML = ''; });
+  renderCiContentsRows();
+  document.getElementById('addCyclicModal').classList.remove('hidden');
+});
+document.getElementById('addContentsRow').addEventListener('click', () => {
+  ciContents.push({ name: '', qty: 1 });
+  renderCiContentsRows();
+});
+document.getElementById('ciPhoto').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    ciPhoto = reader.result;
+    document.getElementById('ciPhotoPreview').innerHTML =
+      `<img src="${ciPhoto}" style="height:48px;border-radius:6px;border:1px solid var(--line)">`;
+    document.getElementById('cyclicIconGrid').querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('closeCyclicModal').addEventListener('click', () => document.getElementById('addCyclicModal').classList.add('hidden'));
+document.getElementById('addCyclicModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden'); });
+document.getElementById('addCyclicForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const listing = currentListing();
+  if (!listing) return;
+  ensureLogistics(listing);
+  const name = document.getElementById('ciName').value.trim();
+  if (!name) return;
+  const initSets = Math.max(1, Number(document.getElementById('ciInitSets').value) || 1);
+  const item = {
+    id: `ci-${makeId()}`,
+    name, icon: ciIcon, photo: ciPhoto,
+    contents: ciContents.filter(c => c.name.trim()),
+    sets: Array.from({ length: initSets }, () => ({ id: `set-${makeId()}`, stage: 'storage' }))
+  };
+  listing.logistics.cyclicItems.push(item);
+  saveApp();
+  document.getElementById('addCyclicModal').classList.add('hidden');
+  renderCyclicSection(); checkAlarms();
+  toast(`"${name}" created with ${initSets} set${initSets > 1 ? 's' : ''} in Storage.`);
+});
 
-      return { valid: !blocked, nights: nightsBetween(start, end), total, blocked };
-    }
+// ═══════════════════════════════════════════════════════════
+//  Consumables
+// ═══════════════════════════════════════════════════════════
+function renderConsumablesSection() {
+  const listing = currentListing();
+  if (!listing) return;
+  ensureLogistics(listing);
+  const items = listing.logistics.consumables;
+  const container = document.getElementById('consumablesList');
+  if (!items.length) {
+    container.innerHTML = `<div class="cyclic-empty">No consumables yet.<br>Track toilet paper, soap, cleaning products, etc.</div>`;
+    return;
+  }
+  container.innerHTML = items.map(c => renderConsCard(c)).join('');
+  container.querySelectorAll('[data-con-action]').forEach(btn => {
+    const { conAction, conId } = btn.dataset;
+    if (conAction === 'inc')     btn.addEventListener('click', () => adjustQty(conId, 1));
+    if (conAction === 'dec')     btn.addEventListener('click', () => adjustQty(conId, -1));
+    if (conAction === 'refill')  btn.addEventListener('click', () => refillConsumable(conId));
+    if (conAction === 'del-con') btn.addEventListener('click', () => deleteConsumable(conId));
+  });
+}
 
-    function updateBookingSummary() {
-      const details = bookingDetails();
-      if (!details.nights) {
-        els.bookingSummary.innerHTML = `
-          <div class="summary-row"><span>Nights</span><strong>0</strong></div>
-          <div class="summary-row"><span>Total</span><strong>EUR 0</strong></div>
-        `;
-        return;
-      }
+function consStatus(c) {
+  if (c.type === 'count') {
+    if (c.qty <= 0)              return { cls: 'badge-out', label: 'Out of stock', pct: 0 };
+    if (c.qty <= c.alertBelow)   return { cls: 'badge-low', label: 'Low',         pct: c.qty / Math.max(c.alertBelow * 3, 1) };
+    return { cls: 'badge-ok', label: 'OK', pct: Math.min(1, c.qty / Math.max(c.alertBelow * 3, 1)) };
+  } else {
+    const used = (c.visitsSinceRefill || 0) / Math.max(c.visitsPerRefill, 1);
+    if (used >= 1)        return { cls: 'badge-out', label: 'Needs refill', pct: 1 };
+    if (used >= 0.7)      return { cls: 'badge-low', label: 'Getting low',  pct: used };
+    return { cls: 'badge-ok', label: 'OK', pct: used };
+  }
+}
 
-      els.bookingSummary.innerHTML = `
-        <div class="summary-row"><span>Nights</span><strong>${details.nights}</strong></div>
-        <div class="summary-row"><span>Total</span><strong>EUR ${details.total}</strong></div>
-      `;
-      els.bookingNotice.textContent = details.blocked ? "Selected dates include unavailable nights." : "";
-      els.bookingNotice.classList.toggle("error", details.blocked);
-    }
+function fillClass(pct, type) {
+  if (type === 'visit') {
+    return pct >= 1 ? 'fill-red' : pct >= 0.7 ? 'fill-amber' : 'fill-green';
+  }
+  return pct <= 0 ? 'fill-red' : pct <= 0.4 ? 'fill-amber' : 'fill-green';
+}
 
-    function updateFromPrice() {
-      const prices = [];
-      for (let offset = 0; offset < 90; offset += 1) {
-        const date = addDays(today, offset);
-        const info = getDateInfo(date);
-        if (info.status === "free") prices.push(info.price);
-      }
-      els.fromPrice.textContent = `EUR ${Math.min(...prices) || 0}`;
-    }
+function renderConsCard(c) {
+  const st = consStatus(c);
+  const thumbHTML = c.photo
+    ? `<img src="${c.photo}" alt="">`
+    : `<span>${c.icon || '📦'}</span>`;
+  const barPct = c.type === 'visit'
+    ? Math.min(100, Math.round(((c.visitsSinceRefill || 0) / Math.max(c.visitsPerRefill, 1)) * 100))
+    : Math.min(100, Math.round(st.pct * 100));
+  const barFill = fillClass(st.pct, c.type);
 
-    function renderImageManager() {
-      els.imageList.innerHTML = state.images.map((image, index) => `
-        <div class="image-item">
-          <img src="${image.src}" alt="${image.name}">
-          <div class="image-meta">
-            <div class="image-title">${image.name}</div>
-            <div class="image-controls">
-              <button class="small-button ${image.active !== false ? "active" : ""}" type="button" data-action="toggle" data-index="${index}">${image.active !== false ? "Visible" : "Hidden"}</button>
-              <button class="small-button" type="button" data-action="cover" data-index="${index}">Cover</button>
-              <button class="small-button" type="button" data-action="up" data-index="${index}">Up</button>
-              <button class="small-button" type="button" data-action="down" data-index="${index}">Down</button>
-              <button class="small-button" type="button" data-action="remove" data-index="${index}">Remove</button>
-            </div>
+  const controls = c.type === 'count' ? `
+    <div class="qty-row">
+      <button class="qty-btn" type="button" data-con-action="dec" data-con-id="${c.id}">−</button>
+      <span class="qty-val">${c.qty}</span>
+      <button class="qty-btn" type="button" data-con-action="inc" data-con-id="${c.id}">+</button>
+      <span style="font-size:.82rem;color:var(--muted)">${c.unit || ''}</span>
+      <span class="status-badge ${st.cls}">${st.label}</span>
+    </div>` : `
+    <div class="qty-row">
+      <span style="font-size:.84rem">${c.visitsSinceRefill || 0} / ${c.visitsPerRefill} visits</span>
+      <span class="status-badge ${st.cls}">${st.label}</span>
+      <button class="small-button" type="button" data-con-action="refill" data-con-id="${c.id}" style="margin-left:auto">Mark refilled</button>
+    </div>`;
+
+  return `
+    <div class="cons-card">
+      <div class="cons-thumb">${thumbHTML}</div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div class="cons-name">${c.name}</div>
+          <button class="small-button" type="button" data-con-action="del-con" data-con-id="${c.id}"
+            style="color:#a64632;flex-shrink:0">Remove</button>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill ${barFill}" style="width:${barPct}%"></div>
+        </div>
+        ${controls}
+      </div>
+    </div>`;
+}
+
+function adjustQty(conId, delta) {
+  const listing = currentListing();
+  if (!listing) return;
+  const c = listing.logistics.consumables.find(c => c.id === conId);
+  if (c) { c.qty = Math.max(0, (c.qty || 0) + delta); saveApp(); renderConsumablesSection(); checkAlarms(); }
+}
+
+function refillConsumable(conId) {
+  const listing = currentListing();
+  if (!listing) return;
+  const c = listing.logistics.consumables.find(c => c.id === conId);
+  if (c) { c.visitsSinceRefill = 0; saveApp(); renderConsumablesSection(); checkAlarms(); }
+}
+
+function deleteConsumable(conId) {
+  const listing = currentListing();
+  if (!listing) return;
+  listing.logistics.consumables = listing.logistics.consumables.filter(c => c.id !== conId);
+  listing.logistics.alarms = listing.logistics.alarms.filter(a => !(a.type === 'consumable' && a.itemId === conId));
+  saveApp(); renderConsumablesSection(); renderAlarmsSection();
+}
+
+// ── Add consumable modal ──
+document.getElementById('conType').addEventListener('change', function () {
+  document.getElementById('conCountFields').style.display = this.value === 'count' ? '' : 'none';
+  document.getElementById('conVisitFields').style.display = this.value === 'visit' ? '' : 'none';
+});
+document.getElementById('addConsumableBtn').addEventListener('click', () => {
+  conIcon = '🧻'; conPhoto = null;
+  document.getElementById('conName').value = '';
+  document.getElementById('conQty').value = '1';
+  document.getElementById('conUnit').value = '';
+  document.getElementById('conAlertBelow').value = '2';
+  document.getElementById('conVisitsPerRefill').value = '10';
+  document.getElementById('conType').value = 'count';
+  document.getElementById('conCountFields').style.display = '';
+  document.getElementById('conVisitFields').style.display = 'none';
+  document.getElementById('conPhotoPreview').innerHTML = '';
+  document.getElementById('conNotice').textContent = '';
+  buildIconGrid('consumableIconGrid', conIcon, v => { conIcon = v; conPhoto = null; document.getElementById('conPhotoPreview').innerHTML = ''; });
+  document.getElementById('addConsumableModal').classList.remove('hidden');
+});
+document.getElementById('conPhoto').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    conPhoto = reader.result;
+    document.getElementById('conPhotoPreview').innerHTML =
+      `<img src="${conPhoto}" style="height:48px;border-radius:6px;border:1px solid var(--line)">`;
+    document.getElementById('consumableIconGrid').querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('closeConsumableModal').addEventListener('click', () => document.getElementById('addConsumableModal').classList.add('hidden'));
+document.getElementById('addConsumableModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden'); });
+document.getElementById('addConsumableForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const listing = currentListing(); if (!listing) return;
+  ensureLogistics(listing);
+  const name = document.getElementById('conName').value.trim();
+  if (!name) return;
+  const type = document.getElementById('conType').value;
+  const c = {
+    id: `con-${makeId()}`, name, icon: conIcon, photo: conPhoto, type,
+    qty: type === 'count' ? Number(document.getElementById('conQty').value) : 0,
+    unit: document.getElementById('conUnit').value.trim(),
+    alertBelow: Number(document.getElementById('conAlertBelow').value) || 2,
+    visitsPerRefill: Number(document.getElementById('conVisitsPerRefill').value) || 10,
+    visitsSinceRefill: 0
+  };
+  listing.logistics.consumables.push(c);
+  saveApp();
+  document.getElementById('addConsumableModal').classList.add('hidden');
+  renderConsumablesSection(); checkAlarms();
+  toast(`"${name}" added.`);
+});
+
+// ═══════════════════════════════════════════════════════════
+//  Alarms
+// ═══════════════════════════════════════════════════════════
+function renderAlarmsSection() {
+  const listing = currentListing(); if (!listing) return;
+  ensureLogistics(listing);
+  const alarms = listing.logistics.alarms;
+  const container = document.getElementById('alarmsList');
+  if (!alarms.length) {
+    container.innerHTML = `<div class="cyclic-empty">No alarms yet. Add rules to get notified when supplies run low.</div>`;
+    return;
+  }
+  const triggered = evaluateAlarms(listing);
+  container.innerHTML = alarms.map(a => {
+    const isFired = triggered.some(t => t.alarm.id === a.id);
+    const channels = [a.notifyPage && 'In-page', a.notifyBrowser && 'Browser', a.notifyEmail && 'Email'].filter(Boolean).join(', ');
+    const itemName = getAlarmItemName(listing, a);
+    const ruleDesc = a.type === 'cyclic'
+      ? `Storage below ${a.threshold} set${a.threshold > 1 ? 's' : ''}`
+      : `Consumable threshold`;
+    return `
+      <div class="alarm-card">
+        <div class="alarm-info">
+          <div class="alarm-name">${a.name}</div>
+          <div class="alarm-rule">${itemName} — ${ruleDesc}</div>
+          <div class="alarm-badges">
+            ${channels ? `<span class="abadge">${channels}</span>` : ''}
+            <span class="abadge${isFired ? ' triggered' : ''}">${isFired ? '⚠️ Triggered' : '✓ OK'}</span>
           </div>
         </div>
-      `).join("");
+        <button class="small-button" type="button" data-del-alarm="${a.id}" style="color:#a64632;flex-shrink:0">Remove</button>
+      </div>`;
+  }).join('');
+  container.querySelectorAll('[data-del-alarm]').forEach(btn =>
+    btn.addEventListener('click', () => deleteAlarm(btn.dataset.delAlarm)));
+}
 
-      els.imageList.querySelectorAll("[data-action]").forEach((button) => {
-        button.addEventListener("click", () => updateImage(button.dataset.action, Number(button.dataset.index)));
-      });
+function getAlarmItemName(listing, alarm) {
+  if (alarm.type === 'cyclic') {
+    const item = listing.logistics.cyclicItems.find(i => i.id === alarm.itemId);
+    return item ? item.name : '(item removed)';
+  }
+  const con = listing.logistics.consumables.find(c => c.id === alarm.itemId);
+  return con ? con.name : '(item removed)';
+}
+
+function evaluateAlarms(listing) {
+  const triggered = [];
+  (listing.logistics.alarms || []).forEach(alarm => {
+    let fired = false, message = '';
+    if (alarm.type === 'cyclic') {
+      const item = listing.logistics.cyclicItems.find(i => i.id === alarm.itemId);
+      if (item) {
+        const n = item.sets.filter(s => s.stage === 'storage').length;
+        fired = n < alarm.threshold;
+        message = `${item.name}: ${n} clean set${n !== 1 ? 's' : ''} in storage (alert below ${alarm.threshold})`;
+      }
+    } else {
+      const c = listing.logistics.consumables.find(c => c.id === alarm.itemId);
+      if (c) {
+        if (c.type === 'count') {
+          fired = c.qty < (c.alertBelow || 0);
+          message = `${c.name}: ${c.qty} ${c.unit || ''} left`;
+        } else {
+          fired = (c.visitsSinceRefill || 0) >= c.visitsPerRefill;
+          message = `${c.name}: ${c.visitsSinceRefill}/${c.visitsPerRefill} visits since refill`;
+        }
+      }
     }
+    if (fired) triggered.push({ alarm, message });
+  });
+  return triggered;
+}
 
-    function updateImage(action, index) {
-      const image = state.images[index];
-      if (!image) return;
-      if (action === "toggle") {
-        image.active = image.active === false;
-      }
-      if (action === "cover" && index > 0) {
-        state.images.splice(index, 1);
-        state.images.unshift(image);
-        currentImage = 0;
-      }
-      if (action === "up" && index > 0) {
-        const previous = state.images[index - 1];
-        state.images[index - 1] = image;
-        state.images[index] = previous;
-      }
-      if (action === "down" && index < state.images.length - 1) {
-        const next = state.images[index + 1];
-        state.images[index + 1] = image;
-        state.images[index] = next;
-      }
-      if (action === "remove") {
-        state.images.splice(index, 1);
-        currentImage = 0;
-      }
-      saveState();
-      renderGallery();
-      renderImageManager();
+function checkAlarms() {
+  const listing = currentListing(); if (!listing) return;
+  ensureLogistics(listing);
+  const triggered = evaluateAlarms(listing);
+  const banner = document.getElementById('alarmBanner');
+
+  // Update alarms section badges
+  renderAlarmsSection();
+
+  if (!triggered.length) { banner.innerHTML = ''; banner.style.display = 'none'; return; }
+
+  // Page banner
+  banner.style.display = '';
+  banner.innerHTML = `
+    <div class="alarm-banner">
+      <div class="alarm-banner-title">⚠️ ${triggered.length} alarm${triggered.length > 1 ? 's' : ''} triggered</div>
+      ${triggered.map(({ alarm, message }) => `
+        <div class="alarm-row">
+          <div class="alarm-row-msg">
+            <div class="alarm-row-name">${alarm.name}</div>
+            <div style="color:#7a5a20">${message}</div>
+          </div>
+          ${alarm.notifyEmail && alarm.email
+            ? `<a href="mailto:${alarm.email}?subject=${encodeURIComponent('⚠️ ' + alarm.name)}&body=${encodeURIComponent(message)}"
+                class="small-button" style="text-decoration:none">Send email</a>`
+            : ''}
+        </div>`).join('')}
+    </div>`;
+
+  // Browser push notifications
+  triggered.forEach(({ alarm, message }) => {
+    if (alarm.notifyBrowser && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(`⚠️ ${alarm.name}`, { body: message, icon: '' });
     }
+  });
+}
 
-    function renderAllCalendars() {
-      renderCalendar(els.customerCalendar, els.customerMonthLabel, customerMonth, "customer");
-      renderCalendar(els.hostCalendar, els.hostMonthLabel, hostMonth, "host");
-      updateFromPrice();
-    }
+function deleteAlarm(alarmId) {
+  const listing = currentListing(); if (!listing) return;
+  listing.logistics.alarms = listing.logistics.alarms.filter(a => a.id !== alarmId);
+  saveApp(); renderAlarmsSection(); checkAlarms();
+}
 
-    function setMode(mode) {
-      const host = mode === "host";
-      els.body.classList.toggle("host-mode", host);
-      els.customerView.classList.toggle("active", !host);
-      els.hostView.classList.toggle("active", host);
-      renderGallery();
-      renderAllCalendars();
-    }
+// ── Add alarm modal ──
+function populateAlarmItemSelect(type) {
+  const listing = currentListing(); if (!listing) return;
+  ensureLogistics(listing);
+  const select = document.getElementById('almItem');
+  const items = type === 'cyclic' ? listing.logistics.cyclicItems : listing.logistics.consumables;
+  select.innerHTML = items.length
+    ? items.map(i => `<option value="${i.id}">${i.name}</option>`).join('')
+    : `<option value="">— none available —</option>`;
+  const thresholdField = document.getElementById('almThresholdField');
+  const thresholdLabel = thresholdField.querySelector('label');
+  thresholdField.style.display = type === 'consumable' ? 'none' : '';
+  if (type === 'cyclic') thresholdLabel.textContent = 'Alert when clean sets in storage fall below';
+}
 
-    function applyAvailability(event) {
-      event.preventDefault();
-      const start = parseDate(els.hostStart.value);
-      const end = parseDate(els.hostEnd.value);
-      const price = Number(els.hostPrice.value);
-      if (!start || !end || end < start || Number.isNaN(price) || price < 0) {
-        els.hostNotice.textContent = "Check the selected dates and price.";
-        els.hostNotice.classList.add("error");
-        return;
-      }
+document.getElementById('almType').addEventListener('change', function () {
+  populateAlarmItemSelect(this.value);
+});
+document.getElementById('almNotifyEmail').addEventListener('change', function () {
+  document.getElementById('almEmailField').style.display = this.checked ? '' : 'none';
+});
+document.getElementById('addAlarmBtn').addEventListener('click', () => {
+  document.getElementById('almName').value = '';
+  document.getElementById('almThreshold').value = '1';
+  document.getElementById('almNotifyPage').checked = true;
+  document.getElementById('almNotifyBrowser').checked = false;
+  document.getElementById('almNotifyEmail').checked = false;
+  document.getElementById('almEmailField').style.display = 'none';
+  document.getElementById('almEmail').value = '';
+  document.getElementById('almNotice').textContent = '';
+  document.getElementById('almType').value = 'cyclic';
+  populateAlarmItemSelect('cyclic');
+  document.getElementById('addAlarmModal').classList.remove('hidden');
+});
+document.getElementById('closeAlarmModal').addEventListener('click', () => document.getElementById('addAlarmModal').classList.add('hidden'));
+document.getElementById('addAlarmModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden'); });
+document.getElementById('addAlarmForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const listing = currentListing(); if (!listing) return;
+  ensureLogistics(listing);
+  const notifyBrowser = document.getElementById('almNotifyBrowser').checked;
+  if (notifyBrowser && 'Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  const alarm = {
+    id: `alm-${makeId()}`,
+    name: document.getElementById('almName').value.trim(),
+    type: document.getElementById('almType').value,
+    itemId: document.getElementById('almItem').value,
+    threshold: Number(document.getElementById('almThreshold').value) || 1,
+    notifyPage: document.getElementById('almNotifyPage').checked,
+    notifyBrowser,
+    notifyEmail: document.getElementById('almNotifyEmail').checked,
+    email: document.getElementById('almEmail').value.trim()
+  };
+  if (!alarm.name || !alarm.itemId) {
+    document.getElementById('almNotice').textContent = 'Fill in all required fields.'; return;
+  }
+  listing.logistics.alarms.push(alarm);
+  saveApp();
+  document.getElementById('addAlarmModal').classList.add('hidden');
+  renderAlarmsSection(); checkAlarms();
+  toast(`Alarm "${alarm.name}" saved.`);
+});
 
-      eachDate(start, end, (date) => {
-        state.dates[formatDate(date)] = {
-          status: els.hostStatus.value,
-          price
-        };
-      });
+// ═══════════════════════════════════════════════════════════
+//  Master logistics render
+// ═══════════════════════════════════════════════════════════
+function renderLogistics() {
+  const listing = currentListing(); if (!listing) return;
+  ensureLogistics(listing);
+  document.getElementById('visitCountDisplay').textContent = listing.logistics.visitCount || 0;
+  renderCyclicSection();
+  renderConsumablesSection();
+  renderAlarmsSection();
+  checkAlarms();
+}
 
-      saveState();
-      els.hostNotice.textContent = "Updated.";
-      els.hostNotice.classList.remove("error");
-      renderAllCalendars();
-      updateBookingSummary();
-    }
-
-    function addUploadedImages(files) {
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          state.images.push({
-            id: `upload-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-            name: file.name,
-            src: reader.result,
-            active: true
-          });
-          saveState();
-          renderGallery();
-          renderImageManager();
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    els.customerView.addEventListener("click", () => setMode("customer"));
-    els.hostView.addEventListener("click", () => setMode("host"));
-    els.customerPrev.addEventListener("click", () => {
-      customerMonth = new Date(customerMonth.getFullYear(), customerMonth.getMonth() - 1, 1);
-      renderAllCalendars();
-    });
-    els.customerNext.addEventListener("click", () => {
-      customerMonth = new Date(customerMonth.getFullYear(), customerMonth.getMonth() + 1, 1);
-      renderAllCalendars();
-    });
-    els.hostPrev.addEventListener("click", () => {
-      hostMonth = new Date(hostMonth.getFullYear(), hostMonth.getMonth() - 1, 1);
-      renderAllCalendars();
-    });
-    els.hostNext.addEventListener("click", () => {
-      hostMonth = new Date(hostMonth.getFullYear(), hostMonth.getMonth() + 1, 1);
-      renderAllCalendars();
-    });
-    els.checkIn.addEventListener("change", () => {
-      renderAllCalendars();
-      updateBookingSummary();
-    });
-    els.checkOut.addEventListener("change", () => {
-      renderAllCalendars();
-      updateBookingSummary();
-    });
-    els.bookingForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const details = bookingDetails();
-      if (!details.valid || !details.nights) {
-        els.bookingNotice.textContent = "Choose available check-in and check-out dates.";
-        els.bookingNotice.classList.add("error");
-        return;
-      }
-      els.bookingNotice.textContent = `Request sent for ${details.nights} nights, total EUR ${details.total}.`;
-      els.bookingNotice.classList.remove("error");
-      event.target.reset();
-      updateBookingSummary();
-      renderAllCalendars();
-    });
-    els.availabilityForm.addEventListener("submit", applyAvailability);
-    els.hostStart.addEventListener("change", renderAllCalendars);
-    els.hostEnd.addEventListener("change", renderAllCalendars);
-    els.resetCalendar.addEventListener("click", () => {
-      state.dates = {};
-      saveState();
-      els.hostNotice.textContent = "Dates reset.";
-      els.hostNotice.classList.remove("error");
-      renderAllCalendars();
-      updateBookingSummary();
-    });
-    els.imageUpload.addEventListener("change", (event) => {
-      addUploadedImages(event.target.files);
-      event.target.value = "";
-    });
-    els.resetImages.addEventListener("click", () => {
-      state.images = defaultImages.map((image) => ({ ...image }));
-      currentImage = 0;
-      saveState();
-      renderGallery();
-      renderImageManager();
-    });
-
-    els.checkIn.min = formatDate(today);
-    els.checkOut.min = formatDate(addDays(today, 1));
-    els.hostStart.value = formatDate(today);
-    els.hostEnd.value = formatDate(today);
-    enableGallerySwipe();
-    renderGallery();
-    renderImageManager();
-    renderAllCalendars();
-    updateBookingSummary();
-  </script>
+// ═══════════════════════════════════════════════════════════
+//  Boot
+// ═══════════════════════════════════════════════════════════
+document.getElementById('checkIn').min  = fmtDate(today);
+document.getElementById('checkOut').min = fmtDate(addDays(today, 1));
+document.getElementById('hostStart').value = fmtDate(today);
+document.getElementById('hostEnd').value   = fmtDate(today);
+enableGallerySwipe();
+renderAll();
+</script>
 </body>
 </html>
