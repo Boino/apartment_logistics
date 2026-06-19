@@ -4,6 +4,20 @@ export const dynamic = 'force-dynamic'
 import { requireAuth, authErrorResponse } from '@/lib/auth/guards'
 import { db } from '@/lib/db'
 
+export async function PATCH() {
+  try {
+    const user = await requireAuth()
+    const updated = await db.user.update({
+      where: { id: user.id },
+      data: { isHost: true },
+      select: { id: true, isHost: true },
+    })
+    return NextResponse.json({ data: updated })
+  } catch (err) {
+    return authErrorResponse(err)
+  }
+}
+
 export async function DELETE() {
   try {
     const user = await requireAuth()

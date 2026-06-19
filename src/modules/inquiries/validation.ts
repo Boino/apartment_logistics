@@ -11,4 +11,14 @@ export const createInquirySchema = z.object({
   path: ['checkoutDate'],
 })
 
+export const postMessageSchema = z.object({
+  body: z.string().min(1, 'Message cannot be empty').max(4000),
+})
+
+export const updateInquiryStatusSchema = z.object({
+  status: z.enum(['ANSWERED', 'CONFIRMED', 'DECLINED', 'CLOSED']),
+})
+
 export type CreateInquiryInput = z.infer<typeof createInquirySchema>
+export type PostMessageInput = z.infer<typeof postMessageSchema>
+export type UpdateInquiryStatusInput = z.infer<typeof updateInquiryStatusSchema>

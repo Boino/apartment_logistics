@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+import { randomBytes } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { sendEmail } from '@/lib/email/send'
 import { registerSchema } from '@/lib/validation/common'
 
 export async function POST(req: Request) {
@@ -31,10 +33,51 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(password, 12)
-  const user = await db.user.create({
-    data: { name, email, passwordHash, phone, isHost: isHost ?? false },
-    select: { id: true, name: true, email: true, isHost: true, createdAt: true },
+  const verifyToken = randomBytes(32).toString('hex')
+  const verifyTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+  await db.user.create({
+    data: {
+      name,
+      email,
+      passwordHash,
+      phone,
+      isHost: isHost ?? false,
+      verifyToken,
+      verifyTokenExpiry,
+    },
   })
 
-  return NextResponse.json({ data: user }, { status: 201 })
+  const appUrl = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  const verifyLink = `${appUrl}/api/auth/verify-email?token=${verifyToken}`
+
+  sendEmail({
+    to: email,
+    subject: 'Verify your StayBase account',
+    template: 'verify-email',
+    data: { name, verifyLink },
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#222">
+        <h2 style="color:#1d7464">Welcome to StayBase, ${name}!</h2>
+        <p>Click the button below to verify your email address and activate your account.</p>
+        <p style="margin:32px 0">
+          <a href="${verifyLink}"
+             style="background:#1d7464;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600">
+            Verify my email
+          </a>
+        </p>
+        <p style="color:#666;font-size:13px">
+          This link expires in 24 hours. If you didn't create an account, you can safely ignore this email.
+        </p>
+        <p style="color:#999;font-size:12px;margin-top:24px">
+          Or copy this URL into your browser:<br/>${verifyLink}
+        </p>
+      </div>
+    `,
+  }).catch((err) => console.error('[verify email]', err))
+
+  return NextResponse.json(
+    { data: { message: 'Account created. Check your email to verify and activate it.' } },
+    { status: 201 },
+  )
 }

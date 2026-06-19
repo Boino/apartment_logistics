@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { ListingStatus } from '@/lib/enums'
 import type { CreateListingInput, UpdateListingInput } from './validation'
+import { seedDefaults } from '@/modules/logistics/service'
 
 export async function getPublishedListings(opts?: {
   search?: string
@@ -106,10 +107,12 @@ export async function publishListing(id: string) {
 
   if (errors.length) throw Object.assign(new Error('Validation failed'), { fields: errors })
 
-  return db.listing.update({
+  const published = await db.listing.update({
     where: { id },
     data: { status: ListingStatus.PUBLISHED },
   })
+  seedDefaults(id).catch((err) => console.error('[seedDefaults]', err))
+  return published
 }
 
 export async function archiveListing(id: string) {

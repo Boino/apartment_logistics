@@ -13,6 +13,9 @@ function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const returnTo = params.get('callbackUrl') ?? '/'
+  const verified = params.get('verified') === '1'
+  const tokenError = params.get('error')
+
   const [error, setError] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState(false)
 
@@ -22,27 +25,44 @@ function LoginForm() {
     setLoading(true)
     const fd = new FormData(e.currentTarget)
     const result = await signIn('credentials', {
-      email: fd.get('email'),
-      password: fd.get('password'),
+      email: fd.get('email') as string,
+      password: fd.get('password') as string,
       redirect: false,
     })
     setLoading(false)
-    if (result?.error) {
+    if (result?.error === 'UNVERIFIED_EMAIL') {
+      setError('Please verify your email before signing in. Check your inbox for the verification link.')
+    } else if (result?.error) {
       setError('Invalid email or password')
     } else {
       router.push(returnTo)
+      router.refresh()
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input name="email" type="email" label="Email" required autoComplete="email" />
-      <Input name="password" type="password" label="Password" required autoComplete="current-password" />
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Signing in…' : 'Sign in'}
-      </Button>
-    </form>
+    <>
+      {verified && (
+        <div className="mb-4 rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+          Email verified! You can now sign in.
+        </div>
+      )}
+      {tokenError && !verified && (
+        <div className="mb-4 rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+          {tokenError === 'expired-token'
+            ? 'Verification link has expired. Register again to get a new one.'
+            : 'Invalid verification link.'}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} method="post" className="space-y-4">
+        <Input name="email" type="email" label="Email" required autoComplete="email" />
+        <Input name="password" type="password" label="Password" required autoComplete="current-password" />
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+    </>
   )
 }
 

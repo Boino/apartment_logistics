@@ -31,13 +31,17 @@ export function InquiryForm({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [calendarKey, setCalendarKey] = useState(0)
 
   function handleRangeSelected(ci: string, co: string, n: number, ppn: number) {
     setCheckin(ci); setCheckout(co); setNights(n); setPricePerNight(ppn)
     setError(null)
   }
 
-  function clearDates() { setCheckin(null); setCheckout(null); setNights(0) }
+  function clearDates() {
+    setCheckin(null); setCheckout(null); setNights(0)
+    setCalendarKey((k) => k + 1) // remount calendar to clear its internal selection
+  }
 
   const { subtotal, discountPct, total } = nights > 0
     ? calcStayPrice(pricePerNight, nights)
@@ -93,11 +97,13 @@ export function InquiryForm({
       <div className="rounded-xl border p-4">
         <h3 className="mb-3 font-semibold">Select dates</h3>
         <GuestCalendar
+          key={calendarKey}
           listingId={listingId}
           basePrice={basePrice}
           minStay={minStay}
           maxStay={maxStay}
           onRangeSelected={handleRangeSelected}
+          onCleared={clearDates}
         />
       </div>
 

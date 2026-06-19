@@ -2,9 +2,9 @@ import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getListingById } from '@/modules/listings/service'
-import Image from 'next/image'
 import { MapPin, Users, BedDouble, Bath, Clock } from 'lucide-react'
 import { InquiryForm } from '@/components/listings/inquiry-form'
+import { ListingGallery } from '@/components/listings/listing-gallery'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +31,6 @@ export default async function ListingDetailPage({ params }: Props) {
   if (!listing) notFound()
 
   const photos = listing.photos
-  const cover = photos[0]
   const amenities = listing.listingAmenities.map((a) => a.amenity)
   const grouped = amenities.reduce<Record<string, typeof amenities>>((acc, a) => {
     const cat = a.category ?? 'Other'
@@ -43,43 +42,8 @@ export default async function ListingDetailPage({ params }: Props) {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       {/* ── Photo gallery ── */}
-      <div className="mb-6 overflow-hidden rounded-2xl">
-        {cover ? (
-          <div className="grid gap-2 grid-cols-1 sm:grid-cols-4 sm:grid-rows-2 max-h-[420px]">
-            {/* main photo */}
-            <div className="relative sm:col-span-2 sm:row-span-2 aspect-[4/3] sm:aspect-auto">
-              <Image
-                src={cover.url}
-                alt={listing.title}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width:640px) 100vw, 50vw"
-              />
-            </div>
-            {/* thumbnails */}
-            {photos.slice(1, 5).map((p) => (
-              <div key={p.id} className="relative hidden sm:block aspect-[4/3]">
-                <Image
-                  src={p.thumbUrl ?? p.url}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="25vw"
-                />
-              </div>
-            ))}
-            {photos.length === 0 && (
-              <div className="col-span-4 row-span-2 flex h-64 items-center justify-center bg-muted text-muted-foreground">
-                No photos yet
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex h-64 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-            No photos yet
-          </div>
-        )}
+      <div className="mb-6">
+        <ListingGallery photos={photos} title={listing.title} />
       </div>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">

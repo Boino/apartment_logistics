@@ -3,14 +3,25 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { Home, LayoutDashboard } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Home, LayoutDashboard, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { NotificationWidget } from '@/modules/notifications/notification-widget'
 
 export function PublicNav() {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const user = session?.user
+  const router = useRouter()
+  const [becomingHost, setBecomingHost] = React.useState(false)
+
+  async function becomeHost() {
+    setBecomingHost(true)
+    await fetch('/api/account', { method: 'PATCH' })
+    await update()
+    router.push('/host')
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -21,15 +32,32 @@ export function PublicNav() {
         </Link>
 
         <nav className="flex items-center gap-2">
-          {/* Mode switcher for hosts */}
-          {user?.isHost && (
+          {/* Mode switcher / become host */}
+          {user?.isHost ? (
             <Button variant="outline" size="sm" asChild>
               <Link href="/host" className="flex items-center gap-1.5">
                 <LayoutDashboard className="h-3.5 w-3.5" />
                 Switch to hosting
               </Link>
             </Button>
+          ) : user ? (
+            <Button variant="outline" size="sm" onClick={becomeHost} disabled={becomingHost}>
+              <LayoutDashboard className="mr-1.5 h-3.5 w-3.5" />
+              {becomingHost ? 'Setting up…' : 'Become a host'}
+            </Button>
+          ) : null}
+
+          {/* Visible inquiries link for signed-in guests */}
+          {user && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/inquiries" className="flex items-center gap-1.5">
+                <MessageSquare className="h-3.5 w-3.5" />
+                My inquiries
+              </Link>
+            </Button>
           )}
+
+          {user && <NotificationWidget />}
 
           {user ? (
             <DropdownMenu.Root>
@@ -42,11 +70,7 @@ export function PublicNav() {
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
                 <DropdownMenu.Content className="z-50 min-w-[160px] rounded-md border bg-popover p-1 shadow-md" align="end">
-                  <DropdownMenu.Item asChild>
-                    <Link href="/inquiries" className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent">
-                      My Inquiries
-                    </Link>
-                  </DropdownMenu.Item>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">{user.email}</div>
                   <DropdownMenu.Separator className="my-1 h-px bg-border" />
                   <DropdownMenu.Item
                     className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm text-destructive outline-none hover:bg-accent"

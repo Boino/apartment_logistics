@@ -10,13 +10,16 @@ datasource db {
 // ── Models ─────────────────────────────────────────────────────────────────
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  phone        String?
-  isHost       Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id                String    @id @default(cuid())
+  name              String
+  email             String    @unique
+  passwordHash      String
+  phone             String?
+  isHost            Boolean   @default(false)
+  emailVerified     DateTime?
+  verifyToken       String?   @unique
+  verifyTokenExpiry DateTime?
+  createdAt         DateTime  @default(now())
 
   listings          Listing[]
   inquiries         Inquiry[]         @relation("GuestInquiries")

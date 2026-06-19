@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   startOfWeek, endOfWeek, addMonths, subMonths,
@@ -18,20 +18,22 @@ interface GuestCalendarProps {
   minStay: number
   maxStay?: number | null
   onRangeSelected: (checkin: string, checkout: string, nights: number, pricePerNight: number) => void
+  onCleared?: () => void
 }
 
-export function GuestCalendar({ listingId, basePrice, minStay, maxStay, onRangeSelected }: GuestCalendarProps) {
+export function GuestCalendar({ listingId, basePrice, minStay, maxStay, onRangeSelected, onCleared }: GuestCalendarProps) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [days, setDays] = useState<DayInfo[]>([])
   const [loading, setLoading] = useState(false)
   const [checkin, setCheckin] = useState<string | null>(null)
+  const [checkout, setCheckout] = useState<string | null>(null) // confirmed checkout
   const [hovered, setHovered] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const fetchCalendar = useCallback(async () => {
     setLoading(true)
     try {
-      // fetch 2 months at once so navigation feels instant
       const from = format(startOfMonth(month), 'yyyy-MM-dd')
       const to = format(endOfMonth(addMonths(month, 1)), 'yyyy-MM-dd')
       const res = await fetch(`/api/listings/${listingId}/calendar?from=${from}&to=${to}`)
@@ -45,6 +47,23 @@ export function GuestCalendar({ listingId, basePrice, minStay, maxStay, onRangeS
   }, [listingId, month])
 
   useEffect(() => { fetchCalendar() }, [fetchCalendar])
+
+  // Click outside calendar → clear selection
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        if (checkin || checkout) {
+          setCheckin(null)
+          setCheckout(null)
+          setHovered(null)
+          setError(null)
+          onCleared?.()
+        }
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [checkin, checkout, onCleared])
 
   const dayMap = new Map(days.map((d) => [d.date, d]))
   const today = startOfDay(new Date())
@@ -65,36 +84,48 @@ export function GuestCalendar({ listingId, basePrice, minStay, maxStay, onRangeS
     if (isBefore(date, today) || info?.status === 'BLOCKED' || info?.status === 'BOOKED') return
 
     setError(null)
-    if (!checkin || dateStr <= checkin) {
+
+    // If we have a confirmed range already, or the click is on/before checkin → start fresh
+    if (!checkin || checkout || dateStr <= checkin) {
       setCheckin(dateStr)
+      setCheckout(null)
       return
     }
 
-    // validate selection
+    // Validate second click as checkout
     const nights = differenceInDays(parseISO(dateStr), parseISO(checkin))
     if (nights < minStay) { setError(`Minimum stay is ${minStay} night(s)`); return }
     if (maxStay && nights > maxStay) { setError(`Maximum stay is ${maxStay} night(s)`); return }
     if (isRangeBlocked(checkin, dateStr)) { setError('Selected range contains unavailable dates'); return }
 
-    // average the nightly price over the selected nights
     const inRange = days.filter((d) => d.date >= checkin && d.date < dateStr)
     const avgPrice = inRange.length > 0
       ? inRange.reduce((sum, d) => sum + (d.price ?? basePrice), 0) / inRange.length
       : basePrice
 
+    // Persist the confirmed selection
+    setCheckout(dateStr)
+    setHovered(null)
     onRangeSelected(checkin, dateStr, nights, avgPrice)
-    setCheckin(null)
   }
 
-  function isSelected(dateStr: string) {
-    if (!checkin) return false
-    const end = hovered ?? checkin
-    const [a, b] = [checkin, end].sort()
-    return dateStr >= a && dateStr <= b
+  function isInConfirmedRange(dateStr: string) {
+    if (!checkin || !checkout) return false
+    return dateStr >= checkin && dateStr <= checkout
   }
+
+  function isInPreviewRange(dateStr: string) {
+    if (!checkin || checkout) return false // no preview once confirmed
+    const end = hovered
+    if (!end || end <= checkin) return false
+    return dateStr > checkin && dateStr < end
+  }
+
+  const isCheckinDate = (dateStr: string) => dateStr === checkin
+  const isCheckoutDate = (dateStr: string) => dateStr === checkout
 
   return (
-    <div>
+    <div ref={containerRef}>
       <div className="mb-3 flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={() => setMonth((m) => subMonths(m, 1))}>
           <ChevronLeft className="h-4 w-4" />
@@ -121,8 +152,10 @@ export function GuestCalendar({ listingId, basePrice, minStay, maxStay, onRangeS
             const isPast = isBefore(date, today)
             const outOfMonth = !isSameMonth(date, month)
             const unavailable = isPast || info?.status === 'BLOCKED' || info?.status === 'BOOKED'
-            const selected = isSelected(dateStr)
-            const isCheckin = checkin === dateStr
+            const confirmedRange = isInConfirmedRange(dateStr)
+            const preview = isInPreviewRange(dateStr)
+            const isStart = isCheckinDate(dateStr)
+            const isEnd = isCheckoutDate(dateStr)
 
             return (
               <button
@@ -130,20 +163,23 @@ export function GuestCalendar({ listingId, basePrice, minStay, maxStay, onRangeS
                 type="button"
                 disabled={outOfMonth}
                 onClick={() => handleDayClick(dateStr)}
-                onMouseEnter={() => checkin && setHovered(dateStr)}
-                onMouseLeave={() => checkin && setHovered(null)}
+                onMouseEnter={() => !checkout && checkin && setHovered(dateStr)}
+                onMouseLeave={() => !checkout && setHovered(null)}
                 className={cn(
                   'flex flex-col items-center rounded-md py-1.5 text-center transition-colors',
                   outOfMonth && 'invisible',
                   unavailable && !outOfMonth && 'bg-[#f2e6e1] text-muted-foreground opacity-60 cursor-not-allowed line-through',
-                  !unavailable && !selected && 'bg-[#e5f4e8] hover:bg-primary/20 cursor-pointer',
-                  selected && 'bg-primary/20',
-                  isCheckin && 'ring-2 ring-primary rounded-md',
+                  !unavailable && !confirmedRange && !preview && 'bg-[#e5f4e8] hover:bg-primary/20 cursor-pointer',
+                  preview && 'bg-primary/15',
+                  confirmedRange && !isStart && !isEnd && 'bg-primary/20',
+                  (isStart || isEnd) && 'bg-primary text-primary-foreground rounded-md',
                 )}
               >
                 <span className="text-sm">{format(date, 'd')}</span>
                 {!outOfMonth && !isPast && info?.price && (
-                  <span className="text-[9px] text-muted-foreground">€{info.price}</span>
+                  <span className={cn('text-[9px]', isStart || isEnd ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                    €{info.price}
+                  </span>
                 )}
               </button>
             )
@@ -151,9 +187,14 @@ export function GuestCalendar({ listingId, basePrice, minStay, maxStay, onRangeS
         </div>
       )}
 
-      {checkin && (
+      {checkin && !checkout && (
         <p className="mt-2 text-xs text-primary">
-          Check-in: <strong>{checkin}</strong> — now click a check-out date
+          Check-in: <strong>{checkin}</strong> — click a check-out date
+        </p>
+      )}
+      {checkin && checkout && (
+        <p className="mt-2 text-xs text-primary">
+          <strong>{checkin}</strong> → <strong>{checkout}</strong> · click outside to clear
         </p>
       )}
       {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
