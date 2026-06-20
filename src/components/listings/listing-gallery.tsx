@@ -54,7 +54,7 @@ export function ListingGallery({ photos, title }: ListingGalleryProps) {
     const dy = touchStartY.current - e.changedTouches[0].clientY
     // Only horizontal swipes (dx dominant)
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-      dx > 0 ? next() : prev()
+      if (dx > 0) { next() } else { prev() }
     }
     touchStartX.current = null
     touchStartY.current = null

@@ -48,8 +48,23 @@ export default async function HostLogisticsPage({ searchParams }: Props) {
 
   const serialized = {
     linenSets: data!.linenSets.map((s) => ({ ...s, updatedAt: s.updatedAt.toISOString() })),
-    consumables: data!.consumables.map((c) => ({ ...c, updatedAt: c.updatedAt.toISOString() })),
+    consumables: data!.consumables.map((c) => ({
+      ...c,
+      mode: (c.quantity !== null ? 'QUANTITY' : 'LEVEL') as 'LEVEL' | 'QUANTITY',
+      unit: c.unit ?? 'units',
+      updatedAt: c.updatedAt.toISOString(),
+    })),
     damageReports: data!.damageReports.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+    linenBundles: data!.linenBundles.map((entry) => ({
+      ...entry,
+      template: {
+        ...entry.template,
+        createdAt: entry.template.createdAt.toISOString(),
+        updatedAt: entry.template.updatedAt.toISOString(),
+      },
+      instances: entry.instances.map((i) => ({ ...i, updatedAt: i.updatedAt.toISOString() })),
+    })),
+    alerts: data!.alerts,
   }
 
   return (

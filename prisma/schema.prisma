@@ -21,15 +21,16 @@ model User {
   verifyTokenExpiry DateTime?
   createdAt         DateTime  @default(now())
 
-  listings          Listing[]
-  inquiries         Inquiry[]         @relation("GuestInquiries")
-  sentMessages      Message[]
-  staffAssignments  StaffAssignment[]
-  prepSlots         PrepSlot[]
-  notifications     Notification[]
-  linenUpdates      LinenSet[]        @relation("LinenUpdater")
-  consumableUpdates Consumable[]      @relation("ConsumableUpdater")
-  damageReports     DamageReport[]
+  listings                Listing[]
+  inquiries               Inquiry[]           @relation("GuestInquiries")
+  sentMessages            Message[]
+  staffAssignments        StaffAssignment[]
+  prepSlots               PrepSlot[]
+  notifications           Notification[]
+  linenUpdates            LinenSet[]          @relation("LinenUpdater")
+  consumableUpdates       Consumable[]        @relation("ConsumableUpdater")
+  damageReports           DamageReport[]
+  bundleInstanceUpdates   LinenBundleInstance[] @relation("BundleInstanceUpdater")
 }
 
 model Listing {
@@ -54,17 +55,19 @@ model Listing {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  host               User               @relation(fields: [hostId], references: [id])
-  photos             ListingPhoto[]
-  listingAmenities   ListingAmenity[]
-  availabilityBlocks AvailabilityBlock[]
-  inquiries          Inquiry[]
-  stays              Stay[]
-  staffAssignments   StaffAssignment[]
-  prepSlots          PrepSlot[]
-  linenSets          LinenSet[]
-  consumables        Consumable[]
-  damageReports      DamageReport[]
+  host                  User                  @relation(fields: [hostId], references: [id])
+  photos                ListingPhoto[]
+  listingAmenities      ListingAmenity[]
+  availabilityBlocks    AvailabilityBlock[]
+  inquiries             Inquiry[]
+  stays                 Stay[]
+  staffAssignments      StaffAssignment[]
+  prepSlots             PrepSlot[]
+  linenSets             LinenSet[]
+  consumables           Consumable[]
+  damageReports         DamageReport[]
+  linenBundleTemplates  LinenBundleTemplate[]
+  linenBundleInstances  LinenBundleInstance[]
 }
 
 model ListingPhoto {
@@ -200,27 +203,31 @@ model PrepSlot {
 }
 
 model LinenSet {
-  id          String   @id @default(cuid())
-  listingId   String
-  type        String
-  label       String
-  state       String   @default("STORED_CLEAN")
-  updatedById String?
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  listingId        String
+  type             String
+  label            String
+  state            String   @default("STORED_CLEAN")
+  updatedById      String?
+  updatedAt        DateTime @updatedAt
+  bundleInstanceId String?
 
-  listing   Listing @relation(fields: [listingId], references: [id])
-  updatedBy User?   @relation("LinenUpdater", fields: [updatedById], references: [id])
+  listing        Listing              @relation(fields: [listingId], references: [id])
+  updatedBy      User?                @relation("LinenUpdater", fields: [updatedById], references: [id])
+  bundleInstance LinenBundleInstance? @relation(fields: [bundleInstanceId], references: [id])
 }
 
 model Consumable {
-  id          String   @id @default(cuid())
-  listingId   String
-  name        String
-  unit        String?
-  quantity    Int?
-  level       String?
-  updatedById String?
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  listingId        String
+  name             String
+  unit             String?
+  quantity         Int?
+  level            String?
+  parTarget        Int?
+  reorderThreshold Int?
+  updatedById      String?
+  updatedAt        DateTime @updatedAt
 
   listing   Listing @relation(fields: [listingId], references: [id])
   updatedBy User?   @relation("ConsumableUpdater", fields: [updatedById], references: [id])
@@ -251,4 +258,39 @@ model Notification {
   createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Linen bundle models ────────────────────────────────────────────────────────
+
+// A host-defined kit definition per listing (e.g. "Queen bed kit").
+// components stores a JSON array: [{itemType: string, quantity: number}]
+// parTarget = desired number of complete STORED_CLEAN sets in rotation (PAR level).
+model LinenBundleTemplate {
+  id          String   @id @default(cuid())
+  listingId   String
+  name        String
+  description String?
+  parTarget   Int      @default(3)
+  components  String   // JSON: [{itemType: string, quantity: number}]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listing   Listing               @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  instances LinenBundleInstance[]
+}
+
+// One physical kit in circulation. state reuses the LinenState values.
+model LinenBundleInstance {
+  id          String   @id @default(cuid())
+  listingId   String
+  templateId  String
+  label       String
+  state       String   @default("STORED_CLEAN")
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  listing     Listing             @relation(fields: [listingId], references: [id])
+  template    LinenBundleTemplate @relation(fields: [templateId], references: [id])
+  updatedBy   User?               @relation("BundleInstanceUpdater", fields: [updatedById], references: [id])
+  linenPieces LinenSet[]
 }
